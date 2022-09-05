@@ -15,7 +15,8 @@ class App extends Component {
 
     this.state = {
       searchState: qs.parse(window.location.search.slice(1)),
-      results: {}
+      resultsMeridian: {},
+      resultsVolcano: {}
     };
 
     window.addEventListener('popstate', ({ state: searchState }) => {
@@ -24,29 +25,33 @@ class App extends Component {
   }
 
   onSearchStateChange = (searchState) => {
-    
-    // update the URL when there is a new search state.
-    //clearTimeout(this.debouncedSetState);
-    //this.debouncedSetState = setTimeout(() => {
-    //  window.history.pushState(
-    //    searchState,
-    //    null
-        //searchStateToUrl(searchState)
-    //  );
-    //}, updateAfter);
-  
-      let url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
-      request({url}, (error, response, body) => {
-          // Do more stuff with 'body' here
-          if (body) {
-            const parsedBody = JSON.parse(body);
-            if (parsedBody[0]) {
-              console.log(typeof parsedBody[0].events);
-              this.setState({ results: parsedBody[0].events });
-              
-            }
+     
+    let url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
+    request({url}, (error, response, body) => {
+        // Do more stuff with 'body' here
+        if (body) {
+          const parsedBody = JSON.parse(body);
+          if (parsedBody[0]) {
+            this.setState({ resultsMeridian: parsedBody[0].events });
+            
           }
-      });
+        }
+    });
+
+    url = `https://sportdataprovider.volcanobet.me/api/public/prematch/search?searchString=${searchState.query}`;
+    request({url}, (error, response, body) => {
+        // Do more stuff with 'body' here
+        if (body) {
+          const parsedBody = JSON.parse(body);
+          //console.log('Volcano parsedBody: ', parsedBody);
+          if (parsedBody[0]) {
+            //console.log('Volcano parsedBody[0]: ', parsedBody[0]);
+            //console.log(typeof parsedBody[0].events);
+            this.setState({ resultsVolcano: parsedBody });
+            
+          }
+        }
+    });
     
 
     this.setState((previousState) => {
@@ -63,20 +68,34 @@ class App extends Component {
     });
   };
   render() {
-    const { searchState, results } = this.state;
+    const boxStyle = {
+      'border-style': 'solid',
+      margin: '5px',
+      padding: '10px'
+    };
+    const { searchState, resultsMeridian, resultsVolcano } = this.state;
     console.log('searchState: ', searchState);
-    console.log('results: ', results);
-    let resultsHTML = [];
-    if (Object.keys(results).length !== 0) {
-      let i = 0;
-      results.map(element => {
+    console.log('resultsMeridian: ', resultsMeridian);
+    console.log('resultsVolcano: ', resultsVolcano);
+    let resultsMeridianHTML = [];
+    let resultsVolcanoHTML = [];
+    let i = 0;
+    if (Object.keys(resultsMeridian).length !== 0) {
+      resultsMeridian.map(element => {
         i++;
-        resultsHTML.push(<div key={i}><p>{JSON.stringify(element.name)}</p></div>);
+        resultsMeridianHTML.push(<div key={i}><p>{JSON.stringify(element.name)}</p></div>);
+      });
+    }
+    if (Object.keys(resultsVolcano).length !== 0) {
+      resultsVolcano.map(element => {
+        i++;
+        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '!!!LIVE!!!':''}</p>);
       });
     }
     return (
       <div className="App">
-        <header className="App-header">
+        <header>
+        <div style={boxStyle}>
         <InstantSearch
           searchClient={{}}
           //indexName="airbnb"
@@ -99,9 +118,17 @@ class App extends Component {
             //translations={object}
           />
         </InstantSearch>
-        {resultsHTML}
-        </header>
+        </div>
         
+        </header>
+            <div style={boxStyle}>
+              <p>Meridian</p>
+              {resultsMeridianHTML}
+            </div>
+            <div style={boxStyle}>
+              <p>Volcano</p>
+              {resultsVolcanoHTML}
+            </div>
       </div>
     );
   }
