@@ -16,7 +16,8 @@ class App extends Component {
     this.state = {
       searchState: qs.parse(window.location.search.slice(1)),
       resultsMeridian: {},
-      resultsVolcano: {}
+      resultsVolcano: {},
+      resultsMaxbet: {}
     };
 
     window.addEventListener('popstate', ({ state: searchState }) => {
@@ -52,6 +53,19 @@ class App extends Component {
           }
         }
     });
+
+    url = `https://api.allorigins.win/get?url=https://api.maxbet.me/search?query=${searchState.query}`;
+    
+    fetch(url)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.contents) {
+        const parsedBody = JSON.parse(data.contents);
+        this.setState({ resultsMaxbet: parsedBody.events });
+      }
+      //console.log('data.contents: ', JSON.parse(data.contents).events);
+    })
+    .catch((error) => console.log('ERROR: ', error));
     
 
     this.setState((previousState) => {
@@ -73,12 +87,14 @@ class App extends Component {
       margin: '5px',
       padding: '10px'
     };
-    const { searchState, resultsMeridian, resultsVolcano } = this.state;
+    const { searchState, resultsMeridian, resultsVolcano, resultsMaxbet } = this.state;
     console.log('searchState: ', searchState);
     console.log('resultsMeridian: ', resultsMeridian);
     console.log('resultsVolcano: ', resultsVolcano);
+    console.log('resultsMaxbet: ', resultsMaxbet);
     let resultsMeridianHTML = [];
     let resultsVolcanoHTML = [];
+    let resultsMaxbetHTML = [];
     let i = 0;
     if (Object.keys(resultsMeridian).length !== 0) {
       resultsMeridian.map(element => {
@@ -89,7 +105,13 @@ class App extends Component {
     if (Object.keys(resultsVolcano).length !== 0) {
       resultsVolcano.map(element => {
         i++;
-        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '!!!LIVE!!!':''}</p>);
+        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '<----- LIVE':''}</p>);
+      });
+    }
+    if (Object.keys(resultsMaxbet).length !== 0) {
+      resultsMaxbet.map(element => {
+        i++;
+        resultsMaxbetHTML.push(<p key={i}>{element.competitors.map((p) => p.name).join(' - ')} {element.live ? '<----- LIVE':''}</p>);
       });
     }
     return (
@@ -128,6 +150,10 @@ class App extends Component {
             <div style={boxStyle}>
               <p>Volcano</p>
               {resultsVolcanoHTML}
+            </div>
+            <div style={boxStyle}>
+              <p>Maxbet</p>
+              {resultsMaxbetHTML}
             </div>
       </div>
     );

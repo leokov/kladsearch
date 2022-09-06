@@ -5274,6 +5274,11 @@
   dependencies:
     "bser" "2.1.1"
 
+"fetch-no-cors@^1.0.13":
+  "integrity" "sha512-Fbksv4IymuO99Zf+umHJohoTP9naAWKWVC0VdGIPZ1J28GUZ2pwparpB+Wm9uamu0zJKW8LOOqk8UGwvcn3zHA=="
+  "resolved" "https://registry.npmjs.org/fetch-no-cors/-/fetch-no-cors-1.0.13.tgz"
+  "version" "1.0.13"
+
 "figgy-pudding@^3.5.1":
   "integrity" "sha512-0btnI/H8f2pavGMN8w40mlSKOfTK2SVJmBfBeVIj3kNw0swwgzyRq0d5TJVOwodFmtvpPeWPN/MCcfuWF0Ezbw=="
   "resolved" "https://registry.npmjs.org/figgy-pudding/-/figgy-pudding-3.5.2.tgz"
