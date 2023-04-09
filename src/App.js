@@ -8,6 +8,7 @@ import './App.css';
 //const updateAfter = 700;
 //const searchStateToUrl = (searchState) =>
 //  searchState ? `${window.location.pathname}?${qs.stringify(searchState)}` : '';
+const hasDuplicates = (arr) => arr.length !== new Set(arr).size;
 
 class App extends Component {
   constructor() {
@@ -48,10 +49,10 @@ class App extends Component {
             });
             const resultLive = neededMatches.map((match) => {
               return {
-                name: match.home + ' - ' + match.away + ' ***live***'
+                name: match.home + ' - ' + match.away// + ' ***live***'
               };
             });
-            this.setState({ resultsLobbet: resultLive });
+            //this.setState({ resultsLobbet: resultLive });
             // search prematches
             url = `https://www.lobbet.me/ibet/search/matchesSearch/${searchState.query}.json`;
             //console.log('PREMATCHES URL: ', url);
@@ -65,7 +66,18 @@ class App extends Component {
                       name: match.home + ' - ' + match.away
                     };
                   });
-                  this.setState({ resultsLobbet: resultLive.concat(resultPrematches) });
+                  let resultsLobbet = resultLive.filter((m) => {
+                    console.log('lookiing for : ', m.name);
+                    const hasMatch = resultPrematches.find((el) => {
+                      console.log('live: ', m.name);
+                      console.log('!= ', el.name !== m.name);
+                      console.log('---');
+                      return el.name == m.name;
+                    });
+                    console.log('--- has match: ', hasMatch);
+                    return !hasMatch;
+                  }).map((elem) => ({ name: elem.name + ' ***live***'})).concat(resultPrematches);
+                  this.setState({ resultsLobbet });
                 }
                 //console.log('PREMATCHES: ', parsedBody);
               };
