@@ -213,12 +213,12 @@ class App extends Component {
               {resultsLobbetHTML}
             </div>
             <div style={boxStyle}>
-              <p>Meridian</p>
-              {resultsMeridianHTML}
-            </div>
-            <div style={boxStyle}>
               <p>Volcano</p>
               {resultsVolcanoHTML}
+            </div>
+            <div style={boxStyle}>
+              <p>Meridian</p>
+              {resultsMeridianHTML}
             </div>
             <div style={boxStyle}>
               <p>Maxbet</p>
