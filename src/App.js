@@ -15,6 +15,7 @@ class App extends Component {
 
     this.state = {
       searchState: qs.parse(window.location.search.slice(1)),
+      resultsLobbet: {},
       resultsMeridian: {},
       resultsVolcano: {},
       resultsMaxbet: {}
@@ -26,8 +27,63 @@ class App extends Component {
   }
 
   onSearchStateChange = (searchState) => {
-     
-    let url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
+
+    //let url = `https://www.lobbet.me/ibet/async/live/multy/-1.json`;
+    let url = `https://www.lobbet.me/ibet/async/live/multy/1.json`;
+    request({url, method: 'POST'}, (error, response, body) => {
+        // Do more stuff with 'body' here
+        if (body) {
+          
+          const parsedBody = JSON.parse(body);
+          //console.log('LOBBBB1: ', parsedBody);
+          if (parsedBody.IMatchLiveContainer) {
+            const matches = parsedBody.IMatchLiveContainer.matches;
+            const neededMatches = matches.filter((match) => {
+              
+              const matchString = match.home + ' - ' + match.away;
+              //console.log('matchString: ', matchString);
+              return new RegExp(searchState.query, 'i').test(matchString);
+              //return matchString.match(`/${searchState.query}/i`);
+              //return matchString.includes(searchState.query);
+            });
+            const resultLive = neededMatches.map((match) => {
+              return {
+                name: match.home + ' - ' + match.away + ' ***live***'
+              };
+            });
+            this.setState({ resultsLobbet: resultLive });
+            // search prematches
+            url = `https://www.lobbet.me/ibet/search/matchesSearch/${searchState.query}.json`;
+            //console.log('PREMATCHES URL: ', url);
+            request({url, method: 'GET'}, (error, response, body) => {
+              // Do more stuff with 'body' here
+              if (body) {
+                const parsedBody = JSON.parse(body);
+                if (parsedBody.matches) {
+                  const resultPrematches = parsedBody.matches.map((match) => {
+                    return {
+                      name: match.home + ' - ' + match.away
+                    };
+                  });
+                  this.setState({ resultsLobbet: resultLive.concat(resultPrematches) });
+                }
+                //console.log('PREMATCHES: ', parsedBody);
+              };
+            });
+
+            //console.log('filteredMatches : ', result);
+            
+          }
+          
+          //const parsedBody = JSON.stringify(body, null, 2);
+          //console.log('LOBBBBB parsedBody: ', parsedBody);
+          //if (parsedBody.IMatchLiveContainer) {
+          //  this.setState({ resultsLobbet: parsedBody.IMatchLiveContainer.matches });  
+          //}
+        }
+    });
+    
+    url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
     request({url}, (error, response, body) => {
         // Do more stuff with 'body' here
         if (body) {
@@ -77,7 +133,8 @@ class App extends Component {
         searchState: {
           ...searchState,
           boundingBox: !hasQueryChanged ? searchState.boundingBox : null,
-        }
+        },
+        searching: !hasQueryChanged
       };
     });
   };
@@ -87,31 +144,39 @@ class App extends Component {
       margin: '5px',
       padding: '10px'
     };
-    const { searchState, resultsMeridian, resultsVolcano, resultsMaxbet } = this.state;
-    console.log('searchState: ', searchState);
-    console.log('resultsMeridian: ', resultsMeridian);
-    console.log('resultsVolcano: ', resultsVolcano);
-    console.log('resultsMaxbet: ', resultsMaxbet);
+    const { searchState, resultsLobbet, resultsMeridian, resultsVolcano, resultsMaxbet } = this.state;
+    //console.log('searchState: ', searchState);
+    //console.log('resultsLobbet: ', resultsLobbet);
+    //console.log('resultsMeridian: ', resultsMeridian);
+    //console.log('resultsVolcano: ', resultsVolcano);
+    //console.log('resultsMaxbet: ', resultsMaxbet);
+    let resultsLobbetHTML = [];
     let resultsMeridianHTML = [];
     let resultsVolcanoHTML = [];
     let resultsMaxbetHTML = [];
     let i = 0;
+    if (Object.keys(resultsLobbet).length !== 0) {
+      resultsLobbet.map(element => {
+        i++;
+        resultsLobbetHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
+      });
+    }
     if (Object.keys(resultsMeridian).length !== 0) {
       resultsMeridian.map(element => {
         i++;
-        resultsMeridianHTML.push(<div key={i}><p>{JSON.stringify(element.name)}</p></div>);
+        resultsMeridianHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
       });
     }
     if (Object.keys(resultsVolcano).length !== 0) {
       resultsVolcano.map(element => {
         i++;
-        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '<----- LIVE':''}</p>);
+        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '***live***':''}</p>);
       });
     }
     if (Object.keys(resultsMaxbet).length !== 0) {
       resultsMaxbet.map(element => {
         i++;
-        resultsMaxbetHTML.push(<p key={i}>{element.competitors.map((p) => p.name).join(' - ')} {element.live ? '<----- LIVE':''}</p>);
+        resultsMaxbetHTML.push(<p key={i}>{element.competitors.map((p) => p.name).join(' - ')} {element.live ? '***live***':''}</p>);
       });
     }
     return (
@@ -143,6 +208,10 @@ class App extends Component {
         </div>
         
         </header>
+            <div style={boxStyle}>
+              <p>Lobbet</p>
+              {resultsLobbetHTML}
+            </div>
             <div style={boxStyle}>
               <p>Meridian</p>
               {resultsMeridianHTML}
