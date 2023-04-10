@@ -17,6 +17,7 @@ class App extends Component {
     this.state = {
       searchState: qs.parse(window.location.search.slice(1)),
       resultsLobbet: {},
+      resultsPremier: {},
       resultsMeridian: {},
       resultsVolcano: {},
       resultsMaxbet: {}
@@ -34,28 +35,23 @@ class App extends Component {
     request({url, method: 'POST'}, (error, response, body) => {
         // Do more stuff with 'body' here
         if (body) {
-          
           const parsedBody = JSON.parse(body);
           //console.log('LOBBBB1: ', parsedBody);
           if (parsedBody.IMatchLiveContainer) {
             const matches = parsedBody.IMatchLiveContainer.matches;
             const neededMatches = matches.filter((match) => {
-              
               const matchString = match.home + ' - ' + match.away;
-              //console.log('matchString: ', matchString);
               return new RegExp(searchState.query, 'i').test(matchString);
-              //return matchString.match(`/${searchState.query}/i`);
-              //return matchString.includes(searchState.query);
             });
             const resultLive = neededMatches.map((match) => {
               return {
                 name: match.home + ' - ' + match.away// + ' ***live***'
               };
             });
-            //this.setState({ resultsLobbet: resultLive });
+            
             // search prematches
             url = `https://www.lobbet.me/ibet/search/matchesSearch/${searchState.query}.json`;
-            //console.log('PREMATCHES URL: ', url);
+            
             request({url, method: 'GET'}, (error, response, body) => {
               // Do more stuff with 'body' here
               if (body) {
@@ -67,34 +63,166 @@ class App extends Component {
                     };
                   });
                   let resultsLobbet = resultLive.filter((m) => {
-                    console.log('lookiing for : ', m.name);
                     const hasMatch = resultPrematches.find((el) => {
-                      console.log('live: ', m.name);
-                      console.log('!= ', el.name !== m.name);
-                      console.log('---');
                       return el.name == m.name;
                     });
-                    console.log('--- has match: ', hasMatch);
                     return !hasMatch;
                   }).map((elem) => ({ name: elem.name + ' ***live***'})).concat(resultPrematches);
                   this.setState({ resultsLobbet });
                 }
-                //console.log('PREMATCHES: ', parsedBody);
               };
-            });
-
-            //console.log('filteredMatches : ', result);
-            
+            }); 
           }
-          
-          //const parsedBody = JSON.stringify(body, null, 2);
-          //console.log('LOBBBBB parsedBody: ', parsedBody);
-          //if (parsedBody.IMatchLiveContainer) {
-          //  this.setState({ resultsLobbet: parsedBody.IMatchLiveContainer.matches });  
-          //}
         }
     });
-    
+
+    url = `https://premierbet.me/balance9876/user/logged`;
+
+    const fetchOpts = {
+      "headers": {
+        "accept": "application/json, text/javascript, */*; q=0.01",
+        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "sec-ch-ua": "\"Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "x-requested-with": "XMLHttpRequest"
+      },
+      "referrer": "https://premierbet.me/live",
+      "referrerPolicy": "strict-origin-when-cross-origin",
+      "body": "{}",
+      "mode": "cors",
+      "credentials": "include"
+    };
+    fetch(url, {...fetchOpts, "method": "POST"})
+    .then(response => response.json())
+    .then((response) => {
+      if (!response.live_rev) return;
+      const { live_rev, basic_rev } = response;
+      
+      //console.log(response);
+      const liveCode = live_rev.published_revision;
+      const preCode = basic_rev.published_revision;
+      //console.log(' liveCode: ', liveCode);
+      //console.log(' preCode: ', preCode);
+      const aa = {...fetchOpts, "method": "GET"};
+      //console.log('AA: ', aa)
+      fetch(`https://premierbet.me/static/rev/ml-${liveCode}.json`, {
+        "headers": {
+          "accept": "application/json, text/javascript, */*; q=0.01",
+          "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+          "sec-ch-ua": "\"Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"macOS\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "same-origin",
+          "x-requested-with": "XMLHttpRequest",
+          "cookie": "_gid=GA1.2.1529824822.1681137189; _xsrf=2|3f3f0c70|10c0a60564a715eb4829c6fddd2e94a9|1681137235; _gat_gtag_UA_45972012_6=1; _ga_4LW4XL35N3=GS1.1.1681165169.2.1.1681165927.0.0.0; _ga=GA1.1.915870690.1661884178",
+          "Referer": "https://premierbet.me/live",
+          "Referrer-Policy": "strict-origin-when-cross-origin"
+        },
+        "body": null,
+        "method": "GET"
+      })
+      .then(response => response.json())
+      .then((response) => {
+        //console.log(response);
+        if (!response.events) return;
+        const matches = Object.values(response.events);
+        const neededMatches = matches.filter((match) => {
+          const matchString = match[6] + ' - ' + match[7];
+          //console.log('live matchString: ', matchString);
+          //console.log('match: ', match);
+          return new RegExp(searchState.query, 'i').test(matchString);
+        });
+        //console.log('Needed matches: ', neededMatches);
+        const resultLive = neededMatches.map((match) => {
+          return {
+            name: match[6] + ' - ' + match[7]
+          };
+        });
+        //console.log('RESULT LIVE: ', resultLive);
+        
+        fetch(`https://premierbet.me/static/rev/ae-${preCode}.json`, {
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01",
+            "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+            "sec-ch-ua": "\"Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "x-requested-with": "XMLHttpRequest",
+            "cookie": "_gid=GA1.2.1529824822.1681137189; _xsrf=2|3f3f0c70|10c0a60564a715eb4829c6fddd2e94a9|1681137235; _gat_gtag_UA_45972012_6=1; _ga_4LW4XL35N3=GS1.1.1681165169.2.1.1681165927.0.0.0; _ga=GA1.1.915870690.1661884178",
+            "Referer": "https://premierbet.me/live",
+            "Referrer-Policy": "strict-origin-when-cross-origin"
+          },
+          "body": null,
+          "method": "GET"
+        })
+        .then(response => response.json())
+        .then((response) => {
+          //console.log('RESONSE: ', response);
+          if (!response.events) return;
+          const matches = Object.values(response.events);
+          const neededMatches = matches.filter((match) => {
+            const matchString = match[6] + ' - ' + match[7];
+            //console.log('pre matchString: ', matchString);
+            //console.log('match: ', match);
+            const matchDate = new Date(match[5]);
+            //console.log('matchDate: ', matchDate);
+            if (matchDate <= Date.now()) return false;
+            return new RegExp(searchState.query, 'i').test(matchString);
+          });
+          const resultPrematches = neededMatches.map((match) => {
+            return {
+              name: match[6] + ' - ' + match[7]
+            };
+          });
+          let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' ***live***'})).concat(resultPrematches);
+          this.setState({ resultsPremier });
+        }).catch((e) => console.error);
+          //console.log('Needed matches: ', neededMatches);
+          
+
+        
+        /** 
+        for (const property in response.events) {
+          //console.log(`${property}: ${response.events[property]}`);
+          const neededMatches = matches.filter((match) => {
+            const matchString = match.home + ' - ' + match.away;
+            return new RegExp(searchState.query, 'i').test(matchString);
+          });
+          const matchName = response.events[property][6] + ' - ' + response.events[property][7];
+          console.log('matchName: ', matchName);
+        }*/
+      }).catch((e) => console.error);
+
+    }).catch((e) => console.error);
+
+   // const response = await fetch("http://example.com/movies.json");
+  //const jsonData = await response.json();
+  //console.log(jsonData);
+    /** 
+    request({url, method: 'POST'}, (error, response, body) => {
+      // Do more stuff with 'body' here
+      console.log('ERROR: ', error);
+      console.log('response: ', response);
+      if (!body) return;
+      console.log('BODY: ', body);
+      const parsedBody = JSON.parse(body);
+      console.log('Premier Parsed response body: ', parsedBody);
+      if (!parsedBody.live_rev) return;
+      const { live_rev, basic_rev } = parsedBody;
+      console.log(' live_rev: ', live_rev);
+      console.log(' basic_rev: ', basic_rev);
+    });
+    */
     url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
     request({url}, (error, response, body) => {
         // Do more stuff with 'body' here
@@ -156,13 +284,14 @@ class App extends Component {
       margin: '5px',
       padding: '10px'
     };
-    const { searchState, resultsLobbet, resultsMeridian, resultsVolcano, resultsMaxbet } = this.state;
+    const { searchState, resultsLobbet, resultsPremier, resultsMeridian, resultsVolcano, resultsMaxbet } = this.state;
     //console.log('searchState: ', searchState);
     //console.log('resultsLobbet: ', resultsLobbet);
     //console.log('resultsMeridian: ', resultsMeridian);
     //console.log('resultsVolcano: ', resultsVolcano);
     //console.log('resultsMaxbet: ', resultsMaxbet);
     let resultsLobbetHTML = [];
+    let resultsPremierHTML = [];
     let resultsMeridianHTML = [];
     let resultsVolcanoHTML = [];
     let resultsMaxbetHTML = [];
@@ -171,6 +300,12 @@ class App extends Component {
       resultsLobbet.map(element => {
         i++;
         resultsLobbetHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
+      });
+    }
+    if (Object.keys(resultsPremier).length !== 0) {
+      resultsPremier.map(element => {
+        i++;
+        resultsPremierHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
       });
     }
     if (Object.keys(resultsMeridian).length !== 0) {
@@ -223,6 +358,10 @@ class App extends Component {
             <div style={boxStyle}>
               <p>Lobbet</p>
               {resultsLobbetHTML}
+            </div>
+            <div style={boxStyle}>
+              <p>Premier</p>
+              {resultsPremierHTML}
             </div>
             <div style={boxStyle}>
               <p>Volcano</p>
