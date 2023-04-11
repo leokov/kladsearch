@@ -76,19 +76,17 @@ class App extends Component {
         }
     });
 
-    url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/balance9876/user/logged`;
-console.log('url: ', url);
+    url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://www.premierbet.me/balance9876/user/logged`;
+//console.log('url: ', url);
     const fetchOpts = {
-      "headers": {
-        "x-requested-with": "XMLHttpRequest"
-      },
+
       "body": "{}"
       //"mode": "cors",
       //"credentials": "include"
     };
     fetch(url, {...fetchOpts, "method": "POST"})
     .then(response => {
-      console.log('OO: ', response);
+      //console.log('OO: ', response);
       return response.json();
     })
     .then((response) => {
