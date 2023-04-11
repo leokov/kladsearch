@@ -77,29 +77,17 @@ class App extends Component {
     });
 
     url = `https://premierbet.me/balance9876/user/logged`;
-
+console.log('url: ', url);
     const fetchOpts = {
-      "headers": {
-        "accept": "application/json, text/javascript, */*; q=0.01",
-        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "sec-ch-ua": "\"Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"macOS\"",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-origin",
-        "x-requested-with": "XMLHttpRequest"
-      },
-      "referrer": "https://premierbet.me/live",
-      "referrerPolicy": "strict-origin-when-cross-origin",
-      "body": "{}",
-      "mode": "cors",
-      "credentials": "include"
+      
+      "body": "{}"
+      //"mode": "cors",
+      //"credentials": "include"
     };
     fetch(url, {...fetchOpts, "method": "POST"})
     .then(response => response.json())
     .then((response) => {
+      console.log('RESEPONSE: ', response);
       if (!response.live_rev) return;
       const { live_rev, basic_rev } = response;
       
@@ -111,20 +99,6 @@ class App extends Component {
       const aa = {...fetchOpts, "method": "GET"};
       //console.log('AA: ', aa)
       fetch(`https://premierbet.me/static/rev/ml-${liveCode}.json`, {
-        "headers": {
-          "accept": "application/json, text/javascript, */*; q=0.01",
-          "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-          "sec-ch-ua": "\"Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111\"",
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": "\"macOS\"",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-origin",
-          "x-requested-with": "XMLHttpRequest",
-          "cookie": "_gid=GA1.2.1529824822.1681137189; _xsrf=2|3f3f0c70|10c0a60564a715eb4829c6fddd2e94a9|1681137235; _gat_gtag_UA_45972012_6=1; _ga_4LW4XL35N3=GS1.1.1681165169.2.1.1681165927.0.0.0; _ga=GA1.1.915870690.1661884178",
-          "Referer": "https://premierbet.me/live",
-          "Referrer-Policy": "strict-origin-when-cross-origin"
-        },
         "body": null,
         "method": "GET"
       })
@@ -148,20 +122,7 @@ class App extends Component {
         //console.log('RESULT LIVE: ', resultLive);
         
         fetch(`https://premierbet.me/static/rev/ae-${preCode}.json`, {
-          "headers": {
-            "accept": "application/json, text/javascript, */*; q=0.01",
-            "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-            "sec-ch-ua": "\"Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111\"",
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": "\"macOS\"",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "x-requested-with": "XMLHttpRequest",
-            "cookie": "_gid=GA1.2.1529824822.1681137189; _xsrf=2|3f3f0c70|10c0a60564a715eb4829c6fddd2e94a9|1681137235; _gat_gtag_UA_45972012_6=1; _ga_4LW4XL35N3=GS1.1.1681165169.2.1.1681165927.0.0.0; _ga=GA1.1.915870690.1661884178",
-            "Referer": "https://premierbet.me/live",
-            "Referrer-Policy": "strict-origin-when-cross-origin"
-          },
+          
           "body": null,
           "method": "GET"
         })
