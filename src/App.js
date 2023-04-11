@@ -76,16 +76,21 @@ class App extends Component {
         }
     });
 
-    url = `https://premierbet.me/balance9876/user/logged`;
+    url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/balance9876/user/logged`;
 console.log('url: ', url);
     const fetchOpts = {
-      
+      "headers": {
+        "x-requested-with": "XMLHttpRequest"
+      },
       "body": "{}"
       //"mode": "cors",
       //"credentials": "include"
     };
     fetch(url, {...fetchOpts, "method": "POST"})
-    .then(response => response.json())
+    .then(response => {
+      console.log('OO: ', response);
+      return response.json();
+    })
     .then((response) => {
       console.log('RESEPONSE: ', response);
       if (!response.live_rev) return;
@@ -164,7 +169,9 @@ console.log('url: ', url);
         }*/
       }).catch((e) => console.error);
 
-    }).catch((e) => console.error);
+    }).catch((e) => {
+      console.log("ERROR ::: ", e);
+    });
 
    // const response = await fetch("http://example.com/movies.json");
   //const jsonData = await response.json();
