@@ -101,7 +101,7 @@ class App extends Component {
       //console.log(' preCode: ', preCode);
       const aa = {...fetchOpts, "method": "GET"};
       //console.log('AA: ', aa)
-      fetch(`https://premierbet.me/static/rev/ml-${liveCode}.json`, {
+      fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/static/rev/ml-${liveCode}.json`, {
         "body": null,
         "method": "GET"
       })
@@ -124,7 +124,7 @@ class App extends Component {
         });
         //console.log('RESULT LIVE: ', resultLive);
         
-        fetch(`https://premierbet.me/static/rev/ae-${preCode}.json`, {
+        fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/static/rev/ae-${preCode}.json`, {
           
           "body": null,
           "method": "GET"
