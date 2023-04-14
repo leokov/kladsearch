@@ -4,6 +4,166 @@ import { InstantSearch, SearchBox } from 'react-instantsearch-dom';
 import request from 'request';
 import logo from './logo.svg';
 import './App.css';
+//import base64 from 'base-64';
+//const goog = require('goog');
+
+/**
+*
+*  Base64 encode / decode
+*  http://www.webtoolkit.info
+*
+**/
+var Base64 = {
+
+  // private property
+  _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+
+  // public method for encoding
+  , encode: function (input)
+  {
+      var output = "";
+      var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+      var i = 0;
+
+      input = Base64._utf8_encode(input);
+
+      while (i < input.length)
+      {
+          chr1 = input.charCodeAt(i++);
+          chr2 = input.charCodeAt(i++);
+          chr3 = input.charCodeAt(i++);
+
+          enc1 = chr1 >> 2;
+          enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+          enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+          enc4 = chr3 & 63;
+
+          if (isNaN(chr2))
+          {
+              enc3 = enc4 = 64;
+          }
+          else if (isNaN(chr3))
+          {
+              enc4 = 64;
+          }
+
+          output = output +
+              this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+              this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+      } // Whend 
+
+      return output;
+  } // End Function encode 
+
+
+  // public method for decoding
+  ,decode: function (input)
+  {
+      var output = "";
+      var chr1, chr2, chr3;
+      var enc1, enc2, enc3, enc4;
+      var i = 0;
+
+      input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+      while (i < input.length)
+      {
+          enc1 = this._keyStr.indexOf(input.charAt(i++));
+          enc2 = this._keyStr.indexOf(input.charAt(i++));
+          enc3 = this._keyStr.indexOf(input.charAt(i++));
+          enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+          chr1 = (enc1 << 2) | (enc2 >> 4);
+          chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+          chr3 = ((enc3 & 3) << 6) | enc4;
+
+          output = output + String.fromCharCode(chr1);
+
+          if (enc3 != 64)
+          {
+              output = output + String.fromCharCode(chr2);
+          }
+
+          if (enc4 != 64)
+          {
+              output = output + String.fromCharCode(chr3);
+          }
+
+      } // Whend 
+
+      output = Base64._utf8_decode(output);
+
+      return output;
+  } // End Function decode 
+
+
+  // private method for UTF-8 encoding
+  ,_utf8_encode: function (string)
+  {
+      var utftext = "";
+      string = string.replace(/\r\n/g, "\n");
+
+      for (var n = 0; n < string.length; n++)
+      {
+          var c = string.charCodeAt(n);
+
+          if (c < 128)
+          {
+              utftext += String.fromCharCode(c);
+          }
+          else if ((c > 127) && (c < 2048))
+          {
+              utftext += String.fromCharCode((c >> 6) | 192);
+              utftext += String.fromCharCode((c & 63) | 128);
+          }
+          else
+          {
+              utftext += String.fromCharCode((c >> 12) | 224);
+              utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+              utftext += String.fromCharCode((c & 63) | 128);
+          }
+
+      } // Next n 
+
+      return utftext;
+  } // End Function _utf8_encode 
+
+  // private method for UTF-8 decoding
+  ,_utf8_decode: function (utftext)
+  {
+      var string = "";
+      var i = 0;
+      var c, c1, c2, c3;
+      c = c1 = c2 = 0;
+
+      while (i < utftext.length)
+      {
+          c = utftext.charCodeAt(i);
+
+          if (c < 128)
+          {
+              string += String.fromCharCode(c);
+              i++;
+          }
+          else if ((c > 191) && (c < 224))
+          {
+              c2 = utftext.charCodeAt(i + 1);
+              string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+              i += 2;
+          }
+          else
+          {
+              c2 = utftext.charCodeAt(i + 1);
+              c3 = utftext.charCodeAt(i + 2);
+              string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+              i += 3;
+          }
+
+      } // Whend 
+
+      return string;
+  } // End Function _utf8_decode 
+
+}
 
 //const updateAfter = 700;
 //const searchStateToUrl = (searchState) =>
@@ -18,6 +178,7 @@ class App extends Component {
       searchState: qs.parse(window.location.search.slice(1)),
       resultsLobbet: {},
       resultsPremier: {},
+      resultsSbbet: {},
       resultsMeridian: {},
       resultsVolcano: {},
       resultsMaxbet: {}
@@ -67,7 +228,7 @@ class App extends Component {
                       return el.name == m.name;
                     });
                     return !hasMatch;
-                  }).map((elem) => ({ name: elem.name + ' ***live***'})).concat(resultPrematches);
+                  }).map((elem) => ({ name: elem.name + ' --- LIVE ---'})).concat(resultPrematches);
                   this.setState({ resultsLobbet });
                 }
               };
@@ -148,7 +309,7 @@ class App extends Component {
               name: match[6] + ' - ' + match[7]
             };
           });
-          let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' ***live***'})).concat(resultPrematches);
+          let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' --- LIVE ---'})).concat(resultPrematches);
           this.setState({ resultsPremier });
         }).catch((e) => console.error);
           //console.log('Needed matches: ', neededMatches);
@@ -189,6 +350,67 @@ class App extends Component {
       console.log(' basic_rev: ', basic_rev);
     });
     */
+
+    fetch("https://n-go-grpc.sbbet.me/odds_stream.OddsStreamService/WebEventsStreamOrdered", {
+      "headers": {
+        "accept": "application/grpc-web-text",
+        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+        "content-type": "application/grpc-web-text",
+        //"sec-ch-ua": "\"Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111\"",
+        //"sec-ch-ua-mobile": "?0",
+        //"sec-ch-ua-platform": "\"macOS\"",
+        //"sec-fetch-dest": "empty",
+        //"sec-fetch-mode": "cors",
+        //"sec-fetch-site": "same-site",
+        //"x-grpc-web": "1",
+        //"x-user-agent": "grpc-web-javascript/0.1",
+        //"Referer": "https://sbbet.me/",
+        //"Referrer-Policy": "strict-origin-when-cross-origin"
+      },
+      "body": "AAAAAAA=",
+      "method": "POST"
+    })
+    .then(response => response.text())
+        .then((response) => {
+          //response = response.replace(/\s/g, ''); 
+          //console.log('SBBET RESPONSE: ', response);
+          //const firstPart = response.split('==')[0];
+          //const secPart = response.split('==')[1];
+          //console.log('first: ', firstPart);
+          //console.log('second: ', secPart);
+          //const fString = firstPart.split('+').join('').split('/').join('') + '==';
+          const resStringUtf8 = Base64.decode(response);
+          console.log('resStringUtf8: ', resStringUtf8);
+          
+          //const matches = resStringUtf8.replace(/[^\x20-\x7E]/g, '').split('$');
+          const matches = resStringUtf8.split('$');
+         
+          //console.log('stringById: ', stringById.map((sub) => sub.split('(')[0].slice(36)));
+          
+          //+ new RegExp('"FH":', 'i').test(sub) ? ' --- LIVE ---' : ''
+          const neededMatches = matches.map((sub) => {
+            const live = new RegExp('"FH":', 'i').test(sub) ? ' --- LIVE ---' : '';
+            return sub.slice(38).split(/[^\x20-\x7E]/g)[0] + live;
+          })
+            .filter((match) => {
+              return new RegExp(searchState.query, 'i').test(match);
+            });
+
+          const resultMatches = neededMatches.map((match) => {
+            return {
+              name: match
+            };
+          });
+
+          this.setState({ resultsSbbet: resultMatches });
+        
+
+          //const matchPresent = new RegExp(searchState.query, 'i').test(resStringUtf8);
+          //console.log('resultMatches : ', resultMatches);
+          //if (!response.events) return;
+        });
+
+
     url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
     request({url}, (error, response, body) => {
         // Do more stuff with 'body' here
@@ -250,7 +472,7 @@ class App extends Component {
       margin: '5px',
       padding: '10px'
     };
-    const { searchState, resultsLobbet, resultsPremier, resultsMeridian, resultsVolcano, resultsMaxbet } = this.state;
+    const { searchState = {}, resultsLobbet = {}, resultsPremier = {}, resultsSbbet = {}, resultsMeridian = {}, resultsVolcano = {}, resultsMaxbet = {} } = this.state;
     //console.log('searchState: ', searchState);
     //console.log('resultsLobbet: ', resultsLobbet);
     //console.log('resultsMeridian: ', resultsMeridian);
@@ -258,6 +480,7 @@ class App extends Component {
     //console.log('resultsMaxbet: ', resultsMaxbet);
     let resultsLobbetHTML = [];
     let resultsPremierHTML = [];
+    let resultsSbbetHTML = [];
     let resultsMeridianHTML = [];
     let resultsVolcanoHTML = [];
     let resultsMaxbetHTML = [];
@@ -274,6 +497,12 @@ class App extends Component {
         resultsPremierHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
       });
     }
+    if (Object.keys(resultsSbbet).length !== 0) {
+      resultsSbbet.map(element => {
+        i++;
+        resultsSbbetHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
+      });
+    }
     if (Object.keys(resultsMeridian).length !== 0) {
       resultsMeridian.map(element => {
         i++;
@@ -283,13 +512,13 @@ class App extends Component {
     if (Object.keys(resultsVolcano).length !== 0) {
       resultsVolcano.map(element => {
         i++;
-        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '***live***':''}</p>);
+        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '--- LIVE ---':''}</p>);
       });
     }
     if (Object.keys(resultsMaxbet).length !== 0) {
       resultsMaxbet.map(element => {
         i++;
-        resultsMaxbetHTML.push(<p key={i}>{element.competitors.map((p) => p.name).join(' - ')} {element.live ? '***live***':''}</p>);
+        resultsMaxbetHTML.push(<p key={i}>{element.competitors.map((p) => p.name).join(' - ')} {element.live ? '--- LIVE ---':''}</p>);
       });
     }
     return (
@@ -328,6 +557,10 @@ class App extends Component {
             <div style={boxStyle}>
               <p>Premier</p>
               {resultsPremierHTML}
+            </div>
+            <div style={boxStyle}>
+              <p>Sbbet</p>
+              {resultsSbbetHTML}
             </div>
             <div style={boxStyle}>
               <p>Volcano</p>
