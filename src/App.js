@@ -247,43 +247,35 @@ class App extends Component {
     };
     fetch(url, {...fetchOpts, "method": "POST"})
     .then(response => {
-      //console.log('OO: ', response);
       return response.json();
     })
     .then((response) => {
-      console.log('RESEPONSE: ', response);
       if (!response.live_rev) return;
       const { live_rev, basic_rev } = response;
       
-      //console.log(response);
       const liveCode = live_rev.published_revision;
       const preCode = basic_rev.published_revision;
-      //console.log(' liveCode: ', liveCode);
-      //console.log(' preCode: ', preCode);
       const aa = {...fetchOpts, "method": "GET"};
-      //console.log('AA: ', aa)
+
       fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/static/rev/ml-${liveCode}.json`, {
         "body": null,
         "method": "GET"
       })
       .then(response => response.json())
       .then((response) => {
-        //console.log(response);
         if (!response.events) return;
         const matches = Object.values(response.events);
+
         const neededMatches = matches.filter((match) => {
           const matchString = match[6] + ' - ' + match[7];
-          //console.log('live matchString: ', matchString);
-          //console.log('match: ', match);
           return new RegExp(searchState.query, 'i').test(matchString);
         });
-        //console.log('Needed matches: ', neededMatches);
+
         const resultLive = neededMatches.map((match) => {
           return {
             name: match[6] + ' - ' + match[7]
           };
         });
-        //console.log('RESULT LIVE: ', resultLive);
         
         fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/static/rev/ae-${preCode}.json`, {
           
@@ -292,15 +284,12 @@ class App extends Component {
         })
         .then(response => response.json())
         .then((response) => {
-          //console.log('RESONSE: ', response);
           if (!response.events) return;
+
           const matches = Object.values(response.events);
           const neededMatches = matches.filter((match) => {
             const matchString = match[6] + ' - ' + match[7];
-            //console.log('pre matchString: ', matchString);
-            //console.log('match: ', match);
             const matchDate = new Date(match[5]);
-            //console.log('matchDate: ', matchDate);
             if (matchDate <= Date.now()) return false;
             return new RegExp(searchState.query, 'i').test(matchString);
           });
@@ -312,44 +301,12 @@ class App extends Component {
           let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' --- LIVE ---'})).concat(resultPrematches);
           this.setState({ resultsPremier });
         }).catch((e) => console.error);
-          //console.log('Needed matches: ', neededMatches);
-          
 
-        
-        /** 
-        for (const property in response.events) {
-          //console.log(`${property}: ${response.events[property]}`);
-          const neededMatches = matches.filter((match) => {
-            const matchString = match.home + ' - ' + match.away;
-            return new RegExp(searchState.query, 'i').test(matchString);
-          });
-          const matchName = response.events[property][6] + ' - ' + response.events[property][7];
-          console.log('matchName: ', matchName);
-        }*/
       }).catch((e) => console.error);
 
     }).catch((e) => {
       console.log("ERROR ::: ", e);
     });
-
-   // const response = await fetch("http://example.com/movies.json");
-  //const jsonData = await response.json();
-  //console.log(jsonData);
-    /** 
-    request({url, method: 'POST'}, (error, response, body) => {
-      // Do more stuff with 'body' here
-      console.log('ERROR: ', error);
-      console.log('response: ', response);
-      if (!body) return;
-      console.log('BODY: ', body);
-      const parsedBody = JSON.parse(body);
-      console.log('Premier Parsed response body: ', parsedBody);
-      if (!parsedBody.live_rev) return;
-      const { live_rev, basic_rev } = parsedBody;
-      console.log(' live_rev: ', live_rev);
-      console.log(' basic_rev: ', basic_rev);
-    });
-    */
 
     fetch("https://n-go-grpc.sbbet.me/odds_stream.OddsStreamService/WebEventsStreamOrdered", {
       "headers": {
@@ -372,22 +329,10 @@ class App extends Component {
     })
     .then(response => response.text())
         .then((response) => {
-          //response = response.replace(/\s/g, ''); 
-          //console.log('SBBET RESPONSE: ', response);
-          //const firstPart = response.split('==')[0];
-          //const secPart = response.split('==')[1];
-          //console.log('first: ', firstPart);
-          //console.log('second: ', secPart);
-          //const fString = firstPart.split('+').join('').split('/').join('') + '==';
+ 
           const resStringUtf8 = Base64.decode(response);
-          console.log('resStringUtf8: ', resStringUtf8);
-          
-          //const matches = resStringUtf8.replace(/[^\x20-\x7E]/g, '').split('$');
           const matches = resStringUtf8.split('$');
-         
-          //console.log('stringById: ', stringById.map((sub) => sub.split('(')[0].slice(36)));
-          
-          //+ new RegExp('"FH":', 'i').test(sub) ? ' --- LIVE ---' : ''
+
           const neededMatches = matches.map((sub) => {
             const live = new RegExp('"FH":', 'i').test(sub) ? ' --- LIVE ---' : '';
             return sub.slice(38).split(/[^\x20-\x7E]/g)[0] + live;
@@ -403,17 +348,11 @@ class App extends Component {
           });
 
           this.setState({ resultsSbbet: resultMatches });
-        
-
-          //const matchPresent = new RegExp(searchState.query, 'i').test(resStringUtf8);
-          //console.log('resultMatches : ', resultMatches);
-          //if (!response.events) return;
         });
 
 
     url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
     request({url}, (error, response, body) => {
-        // Do more stuff with 'body' here
         if (body) {
           const parsedBody = JSON.parse(body);
           if (parsedBody[0]) {
@@ -425,15 +364,10 @@ class App extends Component {
 
     url = `https://sportdataprovider.volcanobet.me/api/public/prematch/search?searchString=${searchState.query}`;
     request({url}, (error, response, body) => {
-        // Do more stuff with 'body' here
         if (body) {
           const parsedBody = JSON.parse(body);
-          //console.log('Volcano parsedBody: ', parsedBody);
           if (parsedBody[0]) {
-            //console.log('Volcano parsedBody[0]: ', parsedBody[0]);
-            //console.log(typeof parsedBody[0].events);
             this.setState({ resultsVolcano: parsedBody });
-            
           }
         }
     });
@@ -447,7 +381,6 @@ class App extends Component {
         const parsedBody = JSON.parse(data.contents);
         this.setState({ resultsMaxbet: parsedBody.events });
       }
-      //console.log('data.contents: ', JSON.parse(data.contents).events);
     })
     .catch((error) => console.log('ERROR: ', error));
     
@@ -473,11 +406,6 @@ class App extends Component {
       padding: '10px'
     };
     const { searchState = {}, resultsLobbet = {}, resultsPremier = {}, resultsSbbet = {}, resultsMeridian = {}, resultsVolcano = {}, resultsMaxbet = {} } = this.state;
-    //console.log('searchState: ', searchState);
-    //console.log('resultsLobbet: ', resultsLobbet);
-    //console.log('resultsMeridian: ', resultsMeridian);
-    //console.log('resultsVolcano: ', resultsVolcano);
-    //console.log('resultsMaxbet: ', resultsMaxbet);
     let resultsLobbetHTML = [];
     let resultsPremierHTML = [];
     let resultsSbbetHTML = [];
@@ -527,7 +455,6 @@ class App extends Component {
         <div style={boxStyle}>
         <InstantSearch
           searchClient={{}}
-          //indexName="airbnb"
           searchState={searchState}
           onSearchStateChange={this.onSearchStateChange}
         >
