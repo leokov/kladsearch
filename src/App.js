@@ -167,11 +167,6 @@ var Base64 = {
 
 }
 
-//const updateAfter = 700;
-//const searchStateToUrl = (searchState) =>
-//  searchState ? `${window.location.pathname}?${qs.stringify(searchState)}` : '';
-//const hasDuplicates = (arr) => arr.length !== new Set(arr).size;
-
 class App extends Component {
   constructor() {
     super();
@@ -185,6 +180,7 @@ class App extends Component {
       resultsVolcano: {},
       resultsMaxbet: {},
       resultsAdmiral: {},
+      resultsZlatnik: {},
     };
 
     window.addEventListener('popstate', ({ state: searchState }) => {
@@ -193,6 +189,7 @@ class App extends Component {
   }
 
   onSearchStateChange = (searchState) => {
+    const compareMatch = (input) => new RegExp(searchState.query, 'i').test(input);
 
     // -----
     // LOBBET
@@ -242,6 +239,55 @@ class App extends Component {
     });
 
     // -----
+    // ZLATNIK
+    // -----
+    
+    // Search prematches
+    fetch(`https://apis.zlatnik.me/SportsOfferApi/api/sport/offer/v3/search?Value=${searchState.query}&Offset=0&Limit=1000`, {
+      "headers": {},
+      "body": null,
+      "method": "GET"
+    })
+    .then(res => res.json())
+    .then(resJson => {
+
+      const getMatchesFromRes = (res) => {
+        if (!res) return [];
+        const matches = [];
+        res.forEach(sportType => {
+          sportType.Categories.forEach(category => {
+            category.Leagues.forEach(league => {
+              league.Matches.forEach(match => {
+                matches.push(match.TeamHome + ' - ' + match.TeamAway);
+              });
+            });
+          });
+        });
+        return matches;
+      };
+
+      // get result prematches names
+      const neededPreMatches = getMatchesFromRes(resJson.Response);
+
+      // Fetch all live matches
+      fetch('https://apis.zlatnik.me/SportsOfferApi/api/sport/offer/v3/matches/live', {
+        "body": null,
+        "method": "GET"
+      })
+      .then(res => res.json())
+      .then(resJson => {
+        const liveMatches = getMatchesFromRes(resJson);
+        // Search for needed matches
+        const neededLiveMatches = liveMatches.filter(m => compareMatch(m));
+        this.setState({
+          resultsZlatnik: neededLiveMatches.map(m => m + liveInd).concat(neededPreMatches)
+        });
+      })
+      .catch(e => console.error);
+    })
+    .catch(e => console.error);
+
+    // -----
     // ADMIRAL
     // -----
 
@@ -269,11 +315,10 @@ class App extends Component {
       return response.json();
     })
     .then((response) => {
-      console.log('ADMiRAL PREMATCH SEARCH: ', response);
-      const neededMatches = response.map((m) => m.name);
-      console.log('neededMatches: ', neededMatches);
+      const neededPreMatches = response.map((m) => m.name);
       // Fetch live matches, Admiral API has the search only for prematches
       
+      // Fetch live matches
       fetch("https://quiet-sky-9919.lenkovlen9913.workers.dev/?https://webapi.admiralbet.me/SportBookCacheWeb/api/offer/livetree/4/null/true/true/false", {
         "headers": {
           //"accept": "application/json, text/plain, */*",
@@ -293,32 +338,23 @@ class App extends Component {
         "body": null,
         "method": "GET"
       })
-      .then(response => {
-        //console.log('ADMIRAL : ', response);
-        return response.json();
-      })
+      .then(res => res.json())
       .then((response) => {
-        console.log('ADMiRAL LIVE: ', response);
+        const neededLiveMatches = []
         response.forEach((sportType) => {
           sportType.regions.forEach((region) => {
             region.competitions.forEach((competition) => {
               competition.events.forEach((event) => {
-                if (new RegExp(searchState.query, 'i').test(event.name)) {
-                  neededMatches.unshift(event.name + liveInd);
-                }
+                if (compareMatch(event.name)) neededLiveMatches.push(event.name);
               });
             });
           });
         });
-        this.setState({ resultsAdmiral: neededMatches });
+        this.setState({ resultsAdmiral: neededLiveMatches.map(m => m + liveInd).concat(neededPreMatches) });
       })
-      .catch((e) => {
-        console.log("ERROR ::: ", e);
-      });
+      .catch(e => console.error);
     })
-    .catch((e) => {
-      console.log("ERROR ::: ", e);
-    });
+    .catch(e => console.error);
 
     // -----
     // PREMIER
@@ -484,6 +520,7 @@ class App extends Component {
     })
     .catch((error) => console.log('ERROR: ', error));
 
+    // Update search state
     this.setState((previousState) => {
       const hasQueryChanged =
         previousState.searchState.query !== searchState.query;
@@ -504,7 +541,19 @@ class App extends Component {
       margin: '5px',
       padding: '10px'
     };
-    const { searchState = {}, resultsLobbet = {}, resultsPremier = {}, resultsSbbet = {}, resultsMeridian = {}, resultsVolcano = {}, resultsMaxbet = {}, resultsAdmiral = {} } = this.state;
+    
+    const {
+      searchState = {},
+      resultsLobbet = {},
+      resultsPremier = {},
+      resultsSbbet = {},
+      resultsMeridian = {},
+      resultsVolcano = {},
+      resultsMaxbet = {},
+      resultsAdmiral = {},
+      resultsZlatnik = {}
+    } = this.state;
+
     let resultsLobbetHTML = [];
     let resultsPremierHTML = [];
     let resultsSbbetHTML = [];
@@ -512,6 +561,8 @@ class App extends Component {
     let resultsVolcanoHTML = [];
     let resultsMaxbetHTML = [];
     let resultsAdmiralHTML = [];
+    let resultsZlatnikHTML = [];
+
     let i = 0;
     if (Object.keys(resultsLobbet).length !== 0) {
       resultsLobbet.map(element => {
@@ -555,6 +606,12 @@ class App extends Component {
         resultsAdmiralHTML.push(<p key={i}>{element.toString()}</p>);
       });
     }
+    if (Object.keys(resultsZlatnik).length !== 0) {
+      resultsZlatnik.map(element => {
+        i++;
+        resultsZlatnikHTML.push(<p key={i}>{element.toString()}</p>);
+      });
+    }
     return (
       <div className="App">
         <header>
@@ -586,6 +643,10 @@ class App extends Component {
             <div style={boxStyle}>
               <p>Lobbet</p>
               {resultsLobbetHTML}
+            </div>
+            <div style={boxStyle}>
+              <p>Zlatnik</p>
+              {resultsZlatnikHTML}
             </div>
             <div style={boxStyle}>
               <p>Admiral</p>
