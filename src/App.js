@@ -6,6 +6,7 @@ import logo from './logo.svg';
 import './App.css';
 //import base64 from 'base-64';
 //const goog = require('goog');
+//import 'instantsearch.css/themes/satellite.css';
 
 /**
 *
@@ -535,13 +536,8 @@ class App extends Component {
       };
     });
   };
+
   render() {
-    const boxStyle = {
-      'border-style': 'solid',
-      margin: '5px',
-      padding: '10px'
-    };
-    
     const {
       searchState = {},
       resultsLobbet = {},
@@ -615,63 +611,68 @@ class App extends Component {
     return (
       <div className="App">
         <header>
-        <div style={boxStyle}>
-        <InstantSearch
-          searchClient={{}}
-          searchState={searchState}
-          onSearchStateChange={this.onSearchStateChange}
-        >
-          <SearchBox
-            // Optional parameters
-            //defaultRefinement={string}
-            autoFocus
-            searchAsYouType={false}
-            //showLoadingIndicator
-            //submit={React.Node}
-            //reset={React.Node}
-            //loadingIndicator={React.Node}
-            //focusShortcuts={string[]}
-            //onSubmit={() => {}}
-            //onReset={() => {}}
-            //on*={() => {}}
-            //translations={object}
-          />
-        </InstantSearch>
-        </div>
-        
+          <div>
+            <InstantSearch
+              searchClient={{}}
+              searchState={searchState}
+              onSearchStateChange={this.onSearchStateChange}
+            >
+              <div className='searchBox'>
+                <SearchBox
+                  text="search"
+                  // Optional parameters
+                  //defaultRefinement={string}
+                  autoFocus
+                  searchAsYouType={false}
+                  //showLoadingIndicator
+                  //submit={React.Node}
+                  //reset={React.Node}
+                  //loadingIndicator={React.Node}
+                  //focusShortcuts={string[]}
+                  //onSubmit={() => {}}
+                  //onReset={() => {}}
+                  //on*={() => {}}
+                  //translations={object}
+                  
+                />
+              </div>
+            </InstantSearch>
+          </div>
         </header>
-            <div style={boxStyle}>
-              <p>Lobbet</p>
+
+            <div className="box">
+              <span>Lobbet</span>
               {resultsLobbetHTML}
             </div>
-            <div style={boxStyle}>
-              <p>Zlatnik</p>
+            <div className="box">
+              <span>Zlatnik</span>
               {resultsZlatnikHTML}
             </div>
-            <div style={boxStyle}>
-              <p>Admiral</p>
+            <div className="box">
+              <span>Admiral</span>
               {resultsAdmiralHTML}
             </div>
-            <div style={boxStyle}>
-              <p>Premier</p>
+            <div className="box">
+              <span>Premier</span>
               {resultsPremierHTML}
             </div>
-            <div style={boxStyle}>
-              <p>Sbbet</p>
+            <div className="box">
+              <span>Sbbet</span>
               {resultsSbbetHTML}
             </div>
-            <div style={boxStyle}>
-              <p>Volcano</p>
+            <div className="box">
+              <span>Volcano</span>
               {resultsVolcanoHTML}
             </div>
-            <div style={boxStyle}>
-              <p>Meridian</p>
+            <div className="box">
+              <span>Meridian</span>
               {resultsMeridianHTML}
             </div>
-            <div style={boxStyle}>
-              <p>Maxbet</p>
+            <div className="box">
+              <span>Maxbet</span>
               {resultsMaxbetHTML}
             </div>
+            <p className="by">made by Leo & Ninessa</p>
       </div>
     );
   }
