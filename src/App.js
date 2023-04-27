@@ -611,6 +611,7 @@ class App extends Component {
     return (
       <div className="App">
         <header>
+          <meta name="viewport" content="width=device-width, user-scalable=no" />
           <div>
             <InstantSearch
               searchClient={{}}
