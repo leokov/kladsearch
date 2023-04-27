@@ -673,6 +673,7 @@ class App extends Component {
               {resultsMaxbetHTML}
             </div>
             <p className="by">made by Leo & Ninessa</p>
+            <p className="by">donate crypto to 0xAf481A660EFb3E4C422c70dEF4D0fa2E50c7d0C7</p>
       </div>
     );
   }
