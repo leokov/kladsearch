@@ -204,7 +204,7 @@ class App extends Component {
             const matches = parsedBody.IMatchLiveContainer.matches;
             const neededMatches = matches.filter((match) => {
               const matchString = match.home + ' - ' + match.away;
-              return new RegExp(searchState.query, 'i').test(matchString);
+              return new RegExp(searchState.query, 'i').test(matchString) && match.showInLive;
             });
             const resultLive = neededMatches.map((match) => {
               return {
