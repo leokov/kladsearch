@@ -195,7 +195,7 @@ class App extends Component {
     // -----
     // LOBBET
     // -----
-    let url = `https://www.lobbet.me/ibet/async/live/multy/1.json`;
+    url = `https://www.lobbet.me/ibet/async/live/multy/1.json`;
      request({url, method: 'POST'}, (error, response, body) => {
         if (body) {
           const parsedBody = JSON.parse(body);
@@ -361,7 +361,7 @@ class App extends Component {
     // PREMIER
     // -----
     
-    url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://www.premierbet.me/balance9876/user/logged`;
+    let url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://www.premierbet.me/balance9876/user/logged`;
     const fetchOpts = {
       "body": "{}"
       //"mode": "cors",
@@ -389,6 +389,7 @@ class App extends Component {
         const matches = Object.values(response.events);
 
         const neededMatches = matches.filter((match) => {
+          if (match[13].length !== 0) return false;
           const matchString = match[6] + ' - ' + match[7];
           return new RegExp(searchState.query, 'i').test(matchString);
         });
@@ -409,19 +410,25 @@ class App extends Component {
           if (!response.events) return;
 
           const matches = Object.values(response.events);
+
           const neededMatches = matches.filter((match) => {
+            if (match[13].length !== 0) return false;
             const matchString = match[6] + ' - ' + match[7];
             const matchDate = new Date(match[5]);
             if (matchDate <= Date.now()) return false;
             return new RegExp(searchState.query, 'i').test(matchString);
           });
+
           const resultPrematches = neededMatches.map((match) => {
             return {
               name: match[6] + ' - ' + match[7]
             };
           });
+
           let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' --- LIVE ---'})).concat(resultPrematches);
+
           this.setState({ resultsPremier });
+
         }).catch((e) => console.error);
 
       }).catch((e) => console.error);
@@ -479,7 +486,7 @@ class App extends Component {
     // -----
     // MERIDIAN
     // -----
-
+    
     url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
     request({url}, (error, response, body) => {
         if (body) {
@@ -650,8 +657,8 @@ class App extends Component {
               {resultsZlatnikHTML}
             </div>
             <div className="box">
-              <span>Admiral</span>
-              {resultsAdmiralHTML}
+              <span>Maxbet</span>
+              {resultsMaxbetHTML}
             </div>
             <div className="box">
               <span>Premier</span>
@@ -666,13 +673,14 @@ class App extends Component {
               {resultsVolcanoHTML}
             </div>
             <div className="box">
+              <span>Admiral</span>
+              {resultsAdmiralHTML}
+            </div>
+            <div className="box">
               <span>Meridian</span>
               {resultsMeridianHTML}
             </div>
-            <div className="box">
-              <span>Maxbet</span>
-              {resultsMaxbetHTML}
-            </div>
+            
             <p className="by">made by Leo & Ninessa</p>
             <p className="by">donate crypto to 0xAf481A660EFb3E4C422c70dEF4D0fa2E50c7d0C7</p>
       </div>
