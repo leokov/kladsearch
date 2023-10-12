@@ -16,6 +16,8 @@ import './App.css';
 **/
 const liveInd = ' --- LIVE ---';
 
+let url = '';
+
 var Base64 = {
 
   // private property
@@ -361,81 +363,60 @@ class App extends Component {
     // PREMIER
     // -----
     
-    let url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://www.premierbet.me/balance9876/user/logged`;
-    const fetchOpts = {
-      "body": "{}"
-      //"mode": "cors",
-      //"credentials": "include"
-    };
-    fetch(url, {...fetchOpts, "method": "POST"})
-    .then(response => {
-      return response.json();
-    })
-    .then((response) => {
-      if (!response.live_rev) return;
-      const { live_rev, basic_rev } = response;
-      
-      const liveCode = live_rev.published_revision;
-      const preCode = basic_rev.published_revision;
-      const aa = {...fetchOpts, "method": "GET"};
+    //let url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/balance9876/user/logged`;
 
-      fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/static/rev/ml-${liveCode}.json`, {
+    fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/live-revision.json.gz`, {
+      "body": null,
+      "method": "GET"
+    })
+    .then(response => response.json())
+    .then((response) => {
+      console.log(response);
+      if (!response.events) return;
+      const matches = Object.values(response.events);
+
+      const neededMatches = matches.filter((match) => {
+        const matchString = match.participant_1.name + ' - ' + match.participant_2.name;
+        return new RegExp(searchState.query, 'i').test(matchString);
+      });
+
+      const resultLive = neededMatches.map((match) => {
+        return {
+          name: match.participant_1.name + ' - ' + match.participant_2.name
+        };
+      });
+
+      fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/nolive-revision.json.gz`, {
+        
         "body": null,
         "method": "GET"
       })
       .then(response => response.json())
       .then((response) => {
         if (!response.events) return;
+
         const matches = Object.values(response.events);
 
         const neededMatches = matches.filter((match) => {
-          if (match[13].length !== 0) return false;
-          const matchString = match[6] + ' - ' + match[7];
+          const matchString = match.participant_1.name + ' - ' + match.participant_2.name;
+          const matchDate = new Date(match.start_time);
+          if (matchDate <= Date.now()) return false;
           return new RegExp(searchState.query, 'i').test(matchString);
         });
 
-        const resultLive = neededMatches.map((match) => {
+        const resultPrematches = neededMatches.map((match) => {
           return {
-            name: match[6] + ' - ' + match[7]
+            name: match.participant_1.name + ' - ' + match.participant_2.name
           };
         });
-        
-        fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/static/rev/ae-${preCode}.json`, {
-          
-          "body": null,
-          "method": "GET"
-        })
-        .then(response => response.json())
-        .then((response) => {
-          if (!response.events) return;
 
-          const matches = Object.values(response.events);
+        let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' --- LIVE ---'})).concat(resultPrematches);
 
-          const neededMatches = matches.filter((match) => {
-            if (match[13].length !== 0) return false;
-            const matchString = match[6] + ' - ' + match[7];
-            const matchDate = new Date(match[5]);
-            if (matchDate <= Date.now()) return false;
-            return new RegExp(searchState.query, 'i').test(matchString);
-          });
-
-          const resultPrematches = neededMatches.map((match) => {
-            return {
-              name: match[6] + ' - ' + match[7]
-            };
-          });
-
-          let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' --- LIVE ---'})).concat(resultPrematches);
-
-          this.setState({ resultsPremier });
-
-        }).catch((e) => console.error);
+        this.setState({ resultsPremier });
 
       }).catch((e) => console.error);
 
-    }).catch((e) => {
-      console.log("ERROR ::: ", e);
-    });
+    }).catch((e) => console.error);
 
     // -----
     // SBBET
