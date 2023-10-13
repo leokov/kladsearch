@@ -398,12 +398,14 @@ class App extends Component {
         const matches = Object.values(response.events);
 
         const neededMatches = matches.filter((match) => {
+          if (match.id_status !== 1) return false;
           const matchString = match.participant_1.name + ' - ' + match.participant_2.name;
           const matchDate = new Date(match.start_time);
           if (matchDate <= Date.now()) return false;
           return new RegExp(searchState.query, 'i').test(matchString);
         });
 
+        console.log('neededMatches: ', neededMatches);
         const resultPrematches = neededMatches.map((match) => {
           return {
             name: match.participant_1.name + ' - ' + match.participant_2.name
