@@ -405,7 +405,6 @@ class App extends Component {
           return new RegExp(searchState.query, 'i').test(matchString);
         });
 
-        console.log('neededMatches: ', neededMatches);
         const resultPrematches = neededMatches.map((match) => {
           return {
             name: match.participant_1.name + ' - ' + match.participant_2.name
