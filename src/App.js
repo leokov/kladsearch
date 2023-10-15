@@ -18,6 +18,7 @@ const liveInd = ' --- LIVE ---';
 
 let url = '';
 
+const dateOptions = { month:"short", day:"numeric", hour: "numeric", minute: "numeric"};
 var Base64 = {
 
   // private property
@@ -217,7 +218,7 @@ class App extends Component {
         name: match.home + ' - ' + match.away,
         league: match.leagueName,
         live: false,
-        date: new Date(match.kickOffTime).toLocaleString(),
+        date: new Date(match.kickOffTime).toLocaleString('en-us', dateOptions),
       };
     };
      request({url, method: 'POST'}, (error, response, body) => {
@@ -523,7 +524,7 @@ class App extends Component {
         name: match.participants.map((p) => p.name).join(' - '),
         league: match.leagueName,
         live: false,
-        date: new Date(match.date).toLocaleString(),
+        date: new Date(match.date).toLocaleString('en-us', dateOptions),
       };
     };
     request({url}, (error, response, body) => {
