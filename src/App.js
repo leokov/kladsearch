@@ -202,15 +202,15 @@ class App extends Component {
     url = `https://www.lobbet.me/ibet/async/live/multy/1.json`;
     const parseLobMatch = (match) => {
       const lobSportTable = {
-        'S': 'football',
-        'B': 'basketball',
-        'T': 'tennis',
-        'V': 'volleyball',
-        'HB': 'handball',
-        'H': 'hockey',
-        'TT': 'table tennis',
-        'E': 'esports',
-        'FS': 'futsal',
+        'S': 'Football',
+        'B': 'Basketball',
+        'T': 'Tennis',
+        'V': 'Volleyball',
+        'HB': 'Handball',
+        'H': 'Hockey',
+        'TT': 'Table tennis',
+        'E': 'Esports',
+        'FS': 'Futsal',
       };
       return {
         id: match.id,
@@ -509,21 +509,21 @@ class App extends Component {
     
     const parseVolcanoMatch = (match) => {
       const volcanoSportTable = {
-        1: 'football',
-        3: 'basketball',
-        2: 'tennis',
-        14: 'volleyball',
-        4: 'handball',
-        21: 'hockey',
-        9: 'table tennis',
-        19: 'futsal',
+        1: 'Football',
+        3: 'Basketball',
+        2: 'Tennis',
+        14: 'Volleyball',
+        4: 'Handball',
+        21: 'Hockey',
+        9: 'Table tennis',
+        19: 'Futsal',
       };
       return {
         id: match.id,
         sport: volcanoSportTable[match.sportId],
         name: match.participants.map((p) => p.name).join(' - '),
         league: match.leagueName,
-        live: false,
+        live: match.l,
         date: new Date(match.date).toLocaleString('en-us', dateOptions),
       };
     };
