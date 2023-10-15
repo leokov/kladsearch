@@ -2,8 +2,8 @@ import qs from 'qs';
 import React, { Component } from 'react';
 import { InstantSearch, SearchBox } from 'react-instantsearch-dom';
 import request from 'request';
-import logo from './logo.svg';
 import './App.css';
+import Match from './Match';
 //import base64 from 'base-64';
 //const goog = require('goog');
 //import 'instantsearch.css/themes/satellite.css';
@@ -184,6 +184,7 @@ class App extends Component {
       resultsMaxbet: {},
       resultsAdmiral: {},
       resultsZlatnik: {},
+      matchId: null,
     };
 
     window.addEventListener('popstate', ({ state: searchState }) => {
@@ -198,6 +199,27 @@ class App extends Component {
     // LOBBET
     // -----
     url = `https://www.lobbet.me/ibet/async/live/multy/1.json`;
+    const parseLobMatch = (match) => {
+      const lobSportTable = {
+        'S': 'football',
+        'B': 'basketball',
+        'T': 'tennis',
+        'V': 'volleyball',
+        'HB': 'handball',
+        'H': 'hockey',
+        'TT': 'table tennis',
+        'E': 'esports',
+        'FS': 'futsal',
+      };
+      return {
+        id: match.id,
+        sport: lobSportTable[match.sport],
+        name: match.home + ' - ' + match.away,
+        league: match.leagueName,
+        live: false,
+        date: new Date(match.kickOffTime).toLocaleString(),
+      };
+    };
      request({url, method: 'POST'}, (error, response, body) => {
         if (body) {
           const parsedBody = JSON.parse(body);
@@ -208,10 +230,11 @@ class App extends Component {
               const matchString = match.home + ' - ' + match.away;
               return new RegExp(searchState.query, 'i').test(matchString) && match.showInLive;
             });
+            //console.log('LOB live matches: ', neededMatches);
             const resultLive = neededMatches.map((match) => {
-              return {
-                name: match.home + ' - ' + match.away// + ' ***live***'
-              };
+              const parsedMatch = parseLobMatch(match);
+              parsedMatch.live = true;
+              return parsedMatch;
             });
             
             // search prematches
@@ -222,17 +245,15 @@ class App extends Component {
               if (body) {
                 const parsedBody = JSON.parse(body);
                 if (parsedBody.matches) {
-                  const resultPrematches = parsedBody.matches.map((match) => {
-                    return {
-                      name: match.home + ' - ' + match.away
-                    };
-                  });
+                  //console.log('LOB prematches: ', parsedBody.matches);
+                  const resultPrematches = parsedBody.matches.map(parseLobMatch);
+                  
                   let resultsLobbet = resultLive.filter((m) => {
                     const hasMatch = resultPrematches.find((el) => {
                       return el.name == m.name;
                     });
                     return !hasMatch;
-                  }).map((elem) => ({ name: elem.name + ' --- LIVE ---'})).concat(resultPrematches);
+                  }).concat(resultPrematches);
                   this.setState({ resultsLobbet });
                 }
               };
@@ -318,7 +339,7 @@ class App extends Component {
       return response.json();
     })
     .then((response) => {
-      const neededPreMatches = response.map((m) => m.name);
+      const neededPreMatches = response.map((m) => ({ name: m.name }));
       // Fetch live matches, Admiral API has the search only for prematches
       
       // Fetch live matches
@@ -353,7 +374,7 @@ class App extends Component {
             });
           });
         });
-        this.setState({ resultsAdmiral: neededLiveMatches.map(m => m + liveInd).concat(neededPreMatches) });
+        this.setState({ resultsAdmiral: neededLiveMatches.map(m => ({ name: m + liveInd })).concat(neededPreMatches) });
       })
       .catch(e => console.error);
     })
@@ -371,7 +392,6 @@ class App extends Component {
     })
     .then(response => response.json())
     .then((response) => {
-      console.log(response);
       if (!response.events) return;
       const matches = Object.values(response.events);
 
@@ -485,11 +505,34 @@ class App extends Component {
     // -----
 
     url = `https://sportdataprovider.volcanobet.me/api/public/prematch/search?searchString=${searchState.query}`;
+    
+    const parseVolcanoMatch = (match) => {
+      const volcanoSportTable = {
+        1: 'football',
+        3: 'basketball',
+        2: 'tennis',
+        14: 'volleyball',
+        4: 'handball',
+        21: 'hockey',
+        9: 'table tennis',
+        19: 'futsal',
+      };
+      return {
+        id: match.id,
+        sport: volcanoSportTable[match.sportId],
+        name: match.participants.map((p) => p.name).join(' - '),
+        league: match.leagueName,
+        live: false,
+        date: new Date(match.date).toLocaleString(),
+      };
+    };
     request({url}, (error, response, body) => {
         if (body) {
           const parsedBody = JSON.parse(body);
+          //console.log('results volcano: ', parsedBody);
           if (parsedBody[0]) {
-            this.setState({ resultsVolcano: parsedBody });
+            const resultsVolcano = parsedBody.map(parseVolcanoMatch);
+            this.setState({ resultsVolcano });
           }
         }
     });
@@ -526,6 +569,8 @@ class App extends Component {
     });
   };
 
+
+
   render() {
     const {
       searchState = {},
@@ -536,7 +581,8 @@ class App extends Component {
       resultsVolcano = {},
       resultsMaxbet = {},
       resultsAdmiral = {},
-      resultsZlatnik = {}
+      resultsZlatnik = {},
+      matchId
     } = this.state;
 
     let resultsLobbetHTML = [];
@@ -552,31 +598,32 @@ class App extends Component {
     if (Object.keys(resultsLobbet).length !== 0) {
       resultsLobbet.map(element => {
         i++;
-        resultsLobbetHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
+        resultsLobbetHTML.push(<Match key={i} {...element}/>);
+        //resultsLobbetHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
       });
     }
     if (Object.keys(resultsPremier).length !== 0) {
       resultsPremier.map(element => {
         i++;
-        resultsPremierHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
+        resultsPremierHTML.push(<Match key={i} {...element}/>);
       });
     }
     if (Object.keys(resultsSbbet).length !== 0) {
       resultsSbbet.map(element => {
         i++;
-        resultsSbbetHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
+        resultsSbbetHTML.push(<Match key={i} {...element}/>);
       });
     }
     if (Object.keys(resultsMeridian).length !== 0) {
       resultsMeridian.map(element => {
         i++;
-        resultsMeridianHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
+        resultsMeridianHTML.push(<Match key={i} {...element}/>);
       });
     }
     if (Object.keys(resultsVolcano).length !== 0) {
       resultsVolcano.map(element => {
         i++;
-        resultsVolcanoHTML.push(<p key={i}>{element.participants.map((p) => p.name).join(' - ')} {element.l ? '--- LIVE ---':''}</p>);
+        resultsVolcanoHTML.push(<Match key={i} {...element}/>);
       });
     }
     if (Object.keys(resultsMaxbet).length !== 0) {
@@ -588,7 +635,7 @@ class App extends Component {
     if (Object.keys(resultsAdmiral).length !== 0) {
       resultsAdmiral.map(element => {
         i++;
-        resultsAdmiralHTML.push(<p key={i}>{element.toString()}</p>);
+        resultsAdmiralHTML.push(<p key={i}>{element.name.toString()}</p>);
       });
     }
     if (Object.keys(resultsZlatnik).length !== 0) {

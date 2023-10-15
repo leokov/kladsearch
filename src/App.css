@@ -47,6 +47,27 @@
   text-align: left;
 }
 
+.MatchPanelExpanded {
+  background-color: #dcdce4;
+  border-radius: 5px;
+  padding: 5px;
+  margin-left: -5px;
+  margin-top: -5px;
+  font-size: 12px;
+  text-align: left;
+}
+.MatchPanel {
+  display: block; 
+  margin-bottom: 1em; 
+  margin-left: 0; 
+  margin-right: 0; 
+  margin-top: 1em; 
+}
+
+.MatchName {
+  font-size: 14px;
+}
+
 .box span {
   border-style: solid;
   border-color: #e4e4ea;
