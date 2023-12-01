@@ -1,9 +1,7 @@
 import qs from 'qs';
 import React, { Component } from 'react';
 import { InstantSearch, SearchBox } from 'react-instantsearch-dom';
-import { render } from "react-dom";
-import { Dots, Windmill, Sentry } from "react-activity";
-import request from 'request';
+import { Sentry } from "react-activity";
 import './App.css';
 import "react-activity/dist/library.css";
 import Match from './Match';
