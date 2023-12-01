@@ -1,8 +1,11 @@
 import qs from 'qs';
 import React, { Component } from 'react';
 import { InstantSearch, SearchBox } from 'react-instantsearch-dom';
+import { render } from "react-dom";
+import { Dots, Windmill, Sentry } from "react-activity";
 import request from 'request';
 import './App.css';
+import "react-activity/dist/library.css";
 import Match from './Match';
 //import base64 from 'base-64';
 //const goog = require('goog');
@@ -19,6 +22,8 @@ const liveInd = ' --- LIVE ---';
 let url = '';
 
 const dateOptions = { month: "short", day: "numeric", hour: "numeric", minute: "numeric" };
+
+
 var Base64 = {
 
   // private property
@@ -160,13 +165,21 @@ class App extends Component {
     this.state = {
       searchState: qs.parse(window.location.search.slice(1)),
       resultsLobbet: {},
+      resultsLobbetReq: false,
       resultsPremier: {},
+      resultsPremierReq: false,
       resultsSbbet: {},
+      resultsSbbetReq: false,
       resultsMeridian: {},
+      resultsMeridianReq: false,
       resultsVolcano: {},
+      resultsVolcanoReq: false,
       resultsMaxbet: {},
+      resultsMaxbetReq: false,
       resultsAdmiral: {},
+      resultsAdmiralReq: false,
       resultsZlatnik: {},
+      resultsZlatnikReq: false,
       matchId: null,
     };
 
@@ -177,6 +190,17 @@ class App extends Component {
 
   onSearchStateChange = (searchState) => {
     const compareMatch = (input) => new RegExp(searchState.query, 'i').test(input);
+
+    this.setState({
+      resultsLobbetReq: true,
+      resultsPremierReq: true,
+      resultsSbbetReq: true,
+      resultsMeridianReq: true,
+      resultsVolcanoReq: true,
+      resultsMaxbetReq: true,
+      resultsAdmiralReq: true,
+      resultsZlatnikReq: true
+    });
 
     // -----
     // LOBBET
@@ -236,7 +260,7 @@ class App extends Component {
               });
               return !hasMatch;
             }).concat(resultPrematches);
-            this.setState({ resultsLobbet });
+            this.setState({ resultsLobbet, resultsLobbetReq: false });
           });
       })
       .catch((error) => console.log('Lobbet req error: ', error));
@@ -283,7 +307,8 @@ class App extends Component {
             // Search for needed matches
             const neededLiveMatches = liveMatches.filter(m => compareMatch(m));
             this.setState({
-              resultsZlatnik: neededLiveMatches.map(m => m + liveInd).concat(neededPreMatches)
+              resultsZlatnik: neededLiveMatches.map(m => m + liveInd).concat(neededPreMatches),
+              resultsZlatnikReq: false
             });
           });
       })
@@ -325,7 +350,10 @@ class App extends Component {
                 });
               });
             });
-            this.setState({ resultsAdmiral: neededLiveMatches.map(m => ({ name: m + liveInd })).concat(neededPreMatches) });
+            this.setState({
+              resultsAdmiral: neededLiveMatches.map(m => ({ name: m + liveInd })).concat(neededPreMatches),
+              resultsAdmiralReq: false
+            });
           });
       })
       .catch((error) => console.log('Admiral req error: ', error));
@@ -383,7 +411,7 @@ class App extends Component {
 
             let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' --- LIVE ---' })).concat(resultPrematches);
 
-            this.setState({ resultsPremier });
+            this.setState({resultsPremier, resultsPremierReq: false });
 
           }).catch((e) => console.error);
 
@@ -393,7 +421,6 @@ class App extends Component {
     // -----
     // SBBET
     // -----
-
     fetch("https://n-go-grpc.sbbet.me/odds_stream.OddsStreamService/WebEventsStreamOrdered", {
       "headers": {
         "accept": "application/grpc-web-text",
@@ -423,20 +450,20 @@ class App extends Component {
           };
         });
 
-        this.setState({ resultsSbbet: resultMatches });
+        this.setState({ resultsSbbet: resultMatches, resultsSbbetReq: false });
       })
       .catch((error) => console.log('Sbbet req error: ', error));
 
     // -----
     // MERIDIAN
     // -----
-
+    
     url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
     
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        if (resJson[0]) this.setState({ resultsMeridian: resJson[0].events });
+        if (resJson[0]) this.setState({ resultsMeridian: resJson[0].events, resultsMeridianReq: false });
       })
       .catch((error) => console.log('Meridian req error: ', error));
 
@@ -471,7 +498,7 @@ class App extends Component {
       .then((resJson) => {
         if (resJson[0]) {
           const resultsVolcano = resJson.map(parseVolcanoMatch);
-          this.setState({ resultsVolcano });
+          this.setState({ resultsVolcano, resultsVolcanoReq: false });
         }
       })
       .catch((error) => console.log('Volcano req error: ', error));
@@ -485,7 +512,7 @@ class App extends Component {
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        this.setState({ resultsMaxbet: resJson.events });
+        this.setState({ resultsMaxbet: resJson.events, resultsMaxbetReq: false });
       })
       .catch((error) => console.log('Maxbet req error: ', error));
 
@@ -615,34 +642,42 @@ class App extends Component {
 
         <div className="box">
           <span>Lobbet</span>
+          {this.state.resultsLobbetReq ? <center><Sentry /></center> : null}
           {resultsLobbetHTML}
         </div>
         <div className="box">
           <span>Zlatnik</span>
+          {this.state.resultsZlatnikReq ? <center><Sentry /></center> : null}
           {resultsZlatnikHTML}
         </div>
         <div className="box">
           <span>Maxbet</span>
+          {this.state.resultsMaxbetReq ? <center><Sentry /></center> : null}
           {resultsMaxbetHTML}
         </div>
         <div className="box">
           <span>Premier</span>
+          {this.state.resultsPremierReq ? <center><Sentry /></center> : null}
           {resultsPremierHTML}
         </div>
         <div className="box">
           <span>Sbbet</span>
+          {this.state.resultsSbbetReq ? <center><Sentry /></center> : null}
           {resultsSbbetHTML}
         </div>
         <div className="box">
           <span>Volcano</span>
+          {this.state.resultsVolcanoReq ? <center><Sentry /></center> : null}
           {resultsVolcanoHTML}
         </div>
         <div className="box">
           <span>Admiral</span>
+          {this.state.resultsAdmiralReq ? <center><Sentry /></center> : null}
           {resultsAdmiralHTML}
         </div>
         <div className="box">
           <span>Meridian</span>
+          {this.state.resultsMeridianReq ? <center><Sentry /></center> : null}
           {resultsMeridianHTML}
         </div>
 
