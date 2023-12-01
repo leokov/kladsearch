@@ -197,7 +197,16 @@ class App extends Component {
       resultsVolcanoReq: true,
       resultsMaxbetReq: true,
       resultsAdmiralReq: true,
-      resultsZlatnikReq: true
+      resultsZlatnikReq: true,
+      resultsLobbet: {},
+      resultsPremier: {},
+      resultsSbbet: {},
+      resultsMeridian: {},
+      resultsVolcano: {},
+      resultsMaxbet: {},
+      resultsAdmiral: {},
+      resultsLobbet: {},
+      resultsZlatnik: {}
     });
 
     // -----
