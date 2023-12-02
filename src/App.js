@@ -470,9 +470,12 @@ class App extends Component {
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        if (resJson[0]) this.setState({ resultsMeridian: resJson[0].events, resultsMeridianReq: false });
+        if (resJson[0]) this.setState({ resultsMeridian: resJson[0].events });
+        this.setState({ resultsMeridianReq: false })
       })
-      .catch((error) => console.log('Meridian req error: ', error));
+      .catch((error) => {
+        console.log('Meridian req error: ', error);
+      });
 
     // -----
     // VOLCANO
@@ -505,10 +508,13 @@ class App extends Component {
       .then((resJson) => {
         if (resJson[0]) {
           const resultsVolcano = resJson.map(parseVolcanoMatch);
-          this.setState({ resultsVolcano, resultsVolcanoReq: false });
+          this.setState({ resultsVolcano });
         }
+        this.setState({ resultsVolcanoReq: false });
       })
-      .catch((error) => console.log('Volcano req error: ', error));
+      .catch((error) => {
+        console.log('Volcano req error: ', error);
+      });
 
     // -----
     // MAXBET
