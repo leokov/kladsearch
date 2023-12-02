@@ -16,8 +16,13 @@ class Match extends Component {
     //{JSON.stringify(this.props, null, 2)}
     
     render() {
-        let matchName = this.props.live ? this.props.name + ' --- LIVE ---' : this.props.name;
-        if (this.props.blocked ) matchName = matchName + ' 🔒';
+        let matchName = this.props.name;
+        
+        
+        if (this.props.live) matchName = matchName + ' 🌲';
+        if (this.props.blocked ) matchName = matchName  + ' 🔒';
+        
+        
         const matchPanel = (props) => {
             return <div className="MatchPanelExpanded">
                 <div class="MatchName">{matchName}</div><br></br>

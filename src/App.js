@@ -225,7 +225,6 @@ class App extends Component {
         'E': 'Esports',
         'FS': 'Futsal',
       };
-      //console.log('match: ', match);
       return {
         id: match.id,
         sport: lobSportTable[match.sport],
@@ -278,6 +277,16 @@ class App extends Component {
     // ZLATNIK
     // -----
 
+    const parseZlatnikMatch = (match) => {
+      return {
+        id: match.Id,
+        sport: match.SportName,
+        name: `${match.TeamHome} - ${match.TeamAway}`,
+        league: match.LeagueName,
+        live: match.live,
+        date: new Date(match.MatchStartTime).toLocaleString('en-us', dateOptions), // date arg in utc
+      };
+    };
     // Search prematches
     fetch(`https://apis.zlatnik.me/SportsOfferApi/api/sport/offer/v3/search?Value=${searchState.query}&Offset=0&Limit=1000`, {
       "headers": {},
@@ -294,7 +303,7 @@ class App extends Component {
             sportType.Categories.forEach(category => {
               category.Leagues.forEach(league => {
                 league.Matches.forEach(match => {
-                  matches.push(match.TeamHome + ' - ' + match.TeamAway);
+                  matches.push(match);
                 });
               });
             });
@@ -313,10 +322,18 @@ class App extends Component {
           .then(res => res.json())
           .then(resJson => {
             const liveMatches = getMatchesFromRes(resJson);
+            
             // Search for needed matches
-            const neededLiveMatches = liveMatches.filter(m => compareMatch(m));
+            const neededLiveMatches = liveMatches.filter((m) => {
+              const match = parseZlatnikMatch(m);
+              return compareMatch(match.name);
+            });
+            neededLiveMatches.forEach((match) => {
+              match.live = true;
+            });
+            const resultsZlatnik = neededLiveMatches.concat(neededPreMatches).map(m => parseZlatnikMatch(m));
             this.setState({
-              resultsZlatnik: neededLiveMatches.map(m => m + liveInd).concat(neededPreMatches),
+              resultsZlatnik,
               resultsZlatnikReq: false
             });
           });
@@ -326,6 +343,19 @@ class App extends Component {
     // -----
     // ADMIRAL
     // -----
+    const parseAdmiralMatch = (match) => {
+      // exclusively for Admiral change match start time to utc
+      const matchDate = new Date(match.dateTime);
+      matchDate.setTime(matchDate.getTime() + 60 * 60 * 1000);
+      return {
+        id: match.id,
+        sport: match.sportName,
+        name: match.name,
+        league: match.competitionName,
+        live: match.isLive,
+        date: matchDate.toLocaleString('en-us', dateOptions) // date arg in utc
+      };
+    };
 
     fetch(`https://quiet-sky-9919.lenkovlen9913.workers.dev/?https://webapi.admiralbet.me/SportBookCacheWeb/api/offer/SearchEventsWeb/${searchState.query}/false`, {
       "headers": {
@@ -336,9 +366,8 @@ class App extends Component {
     })
       .then(res => res.json())
       .then((resJson) => {
-        const neededPreMatches = resJson.map((m) => ({ name: m.name }));
+        const neededPreMatches = resJson.map((m) => parseAdmiralMatch(m));
         // Fetch live matches, Admiral API has the search only for prematches
-
         // Fetch live matches
         return fetch("https://quiet-sky-9919.lenkovlen9913.workers.dev/?https://webapi.admiralbet.me/SportBookCacheWeb/api/offer/livetree/4/null/true/true/false", {
           "headers": {
@@ -354,13 +383,13 @@ class App extends Component {
               sportType.regions.forEach((region) => {
                 region.competitions.forEach((competition) => {
                   competition.events.forEach((event) => {
-                    if (compareMatch(event.name)) neededLiveMatches.push(event.name);
+                    if (compareMatch(event.name)) neededLiveMatches.push(parseAdmiralMatch(event));
                   });
                 });
               });
             });
             this.setState({
-              resultsAdmiral: neededLiveMatches.map(m => ({ name: m + liveInd })).concat(neededPreMatches),
+              resultsAdmiral: neededLiveMatches.concat(neededPreMatches),
               resultsAdmiralReq: false
             });
           });
@@ -373,6 +402,16 @@ class App extends Component {
 
     //let url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/balance9876/user/logged`;
 
+    const parsePremierMatch = (match) => {
+      return {
+        id: match.id,
+        sport: match.SportName,
+        name: match.participant_1.name + ' - ' + match.participant_2.name,
+        league: match.c_name,
+        live: match.live,
+        date: new Date(match.ModifiedDate).toLocaleString('en-us', dateOptions), // date arg in utc
+      };
+    };
     fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/live-revision.json.gz`, {
       "body": null,
       "method": "GET"
@@ -380,17 +419,12 @@ class App extends Component {
       .then(res => res.json())
       .then((resJson) => {
         if (!resJson.events) return;
-        const matches = Object.values(resJson.events);
-
-        const neededMatches = matches.filter((match) => {
-          const matchString = match.participant_1.name + ' - ' + match.participant_2.name;
-          return new RegExp(searchState.query, 'i').test(matchString);
+        const matches = Object.values(resJson.events).map((m) => {
+          return parsePremierMatch({ live: true, ...m });
         });
 
-        const resultLive = neededMatches.map((match) => {
-          return {
-            name: match.participant_1.name + ' - ' + match.participant_2.name
-          };
+        const neededLiveMatches = matches.filter((m) => {
+          return new RegExp(searchState.query, 'i').test(m.name);
         });
 
         fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/nolive-revision.json.gz`, {
@@ -412,13 +446,13 @@ class App extends Component {
               return new RegExp(searchState.query, 'i').test(matchString);
             });
 
-            const resultPrematches = neededMatches.map((match) => {
+            const neededPrematches = neededMatches.map((match) => {
               return {
                 name: match.participant_1.name + ' - ' + match.participant_2.name
               };
             });
 
-            let resultsPremier = resultLive.map((elem) => ({ name: elem.name + ' --- LIVE ---' })).concat(resultPrematches);
+            let resultsPremier = neededLiveMatches.concat(neededPrematches);
 
             this.setState({resultsPremier, resultsPremierReq: false });
 
@@ -445,21 +479,19 @@ class App extends Component {
         const resStringUtf8 = Base64.decode(resText);
         const matches = resStringUtf8.split('$');
 
-        const neededMatches = matches.map((sub) => {
-          const live = new RegExp('"FH":', 'i').test(sub) ? ' --- LIVE ---' : '';
-          return sub.slice(38).split(/[^\x20-\x7E]/g)[0] + live;
+        const resultsSbbet = matches.map((sub) => {
+          let match = {};
+          if (new RegExp('"FH":', 'i').test(sub)) {
+            match.live = true;
+          }
+          match.name = sub.slice(38).split(/[^\x20-\x7E]/g)[0];
+          return match;
         })
           .filter((match) => {
-            return new RegExp(searchState.query, 'i').test(match);
+            return new RegExp(searchState.query, 'i').test(match.name);
           });
 
-        const resultMatches = neededMatches.map((match) => {
-          return {
-            name: match
-          };
-        });
-
-        this.setState({ resultsSbbet: resultMatches, resultsSbbetReq: false });
+        this.setState({ resultsSbbet, resultsSbbetReq: false });
       })
       .catch((error) => console.log('Sbbet req error: ', error));
 
@@ -469,10 +501,21 @@ class App extends Component {
     
     url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
     
+    const parseMeridianMatch = (match) => {
+      return {
+        id: match.id,
+        sport: match.sportName,
+        name: match.name,
+        league: match.leagueName,
+        live: match.isVisibleLive,
+        date: new Date(match.startTime).toLocaleString('en-us', dateOptions),
+      };
+    };
+
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        if (resJson[0]) this.setState({ resultsMeridian: resJson[0].events });
+        if (resJson[0]) this.setState({ resultsMeridian: resJson[0].events.map(parseMeridianMatch) });
         this.setState({ resultsMeridianReq: false })
       })
       .catch((error) => {
@@ -521,7 +564,7 @@ class App extends Component {
     // -----
     // MAXBET
     // -----
-
+    
     url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://api.maxbet.me/search?query=${searchState.query}&markets=ofb,ofbs,oa0s,of0s,obb,obbs,otn,otns,oih,oihs,ohb,ohbs,ovb,ovbs,ott,oaf,oafs,obm,obs,odt,owp,owps,oft,orb,org,osn,o3x3,obf,ocr,obx,omm,oe0s,,lfb,lbb,ltn,lih,lhb,lvb,ltt,laf,lbm,lbs,lbv,les,ldt,lwp,lft,lrb,lsn,lef,lvf`;
 
     const parseMaxbetMatch = (match) => {
@@ -540,7 +583,6 @@ class App extends Component {
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        console.log('Maxbet results : ', resJson);
         const resultsMaxbet = resJson.events.filter(m => !m.finished).map(parseMaxbetMatch);
         this.setState({ resultsMaxbet, resultsMaxbetReq: false });
       })
@@ -628,13 +670,13 @@ class App extends Component {
     if (Object.keys(resultsAdmiral).length !== 0) {
       resultsAdmiral.map(element => {
         i++;
-        resultsAdmiralHTML.push(<p key={i}>{element.name.toString()}</p>);
+        resultsAdmiralHTML.push(<Match key={i} {...element} />);
       });
     }
     if (Object.keys(resultsZlatnik).length !== 0) {
       resultsZlatnik.map(element => {
         i++;
-        resultsZlatnikHTML.push(<p key={i}>{element.toString()}</p>);
+        resultsZlatnikHTML.push(<Match key={i} {...element} />);
       });
     }
     return (
