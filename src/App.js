@@ -225,7 +225,7 @@ class App extends Component {
         'E': 'Esports',
         'FS': 'Futsal',
       };
-      console.log('match: ', match);
+      //console.log('match: ', match);
       return {
         id: match.id,
         sport: lobSportTable[match.sport],
@@ -522,12 +522,26 @@ class App extends Component {
     // MAXBET
     // -----
 
-    url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://api.maxbet.me/search?query=${searchState.query}`;
+    url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://api.maxbet.me/search?query=${searchState.query}&markets=ofb,ofbs,oa0s,of0s,obb,obbs,otn,otns,oih,oihs,ohb,ohbs,ovb,ovbs,ott,oaf,oafs,obm,obs,odt,owp,owps,oft,orb,org,osn,o3x3,obf,ocr,obx,omm,oe0s,,lfb,lbb,ltn,lih,lhb,lvb,ltt,laf,lbm,lbs,lbv,les,ldt,lwp,lft,lrb,lsn,lef,lvf`;
+
+    const parseMaxbetMatch = (match) => {
+      return {
+        id: match.id,
+        sport: match.sport.name, //
+        name: match.competitors.map((p) => p.name).join(' - '), //
+        league: match.tournament.name, //
+        live: match.live, //
+        date: new Date(match.utc_scheduled + "Z").toLocaleString('en-us', dateOptions), //
+        blocked: match.event_status == 'STOPPED' || !match.active_market_count || !match.active_oddtype_count //|| (match.event_status == 'RUNNING' && !match.current_time)
+      };
+    };
 
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        this.setState({ resultsMaxbet: resJson.events, resultsMaxbetReq: false });
+        //console.log('Maxbet results : ', resJson);
+        const resultsMaxbet = resJson.events.filter(m => !m.finished).map(parseMaxbetMatch);
+        this.setState({ resultsMaxbet, resultsMaxbetReq: false });
       })
       .catch((error) => console.log('Maxbet req error: ', error));
 
@@ -607,7 +621,7 @@ class App extends Component {
     if (Object.keys(resultsMaxbet).length !== 0) {
       resultsMaxbet.map(element => {
         i++;
-        resultsMaxbetHTML.push(<p key={i}>{element.competitors.map((p) => p.name).join(' - ')} {element.live ? '--- LIVE ---' : ''}</p>);
+        resultsMaxbetHTML.push(<Match key={i} {...element} />);
       });
     }
     if (Object.keys(resultsAdmiral).length !== 0) {
