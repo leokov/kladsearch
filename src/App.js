@@ -225,6 +225,7 @@ class App extends Component {
         'E': 'Esports',
         'FS': 'Futsal',
       };
+      console.log('match: ', match);
       return {
         id: match.id,
         sport: lobSportTable[match.sport],
@@ -232,6 +233,7 @@ class App extends Component {
         league: match.leagueName,
         live: false,
         date: new Date(match.kickOffTime).toLocaleString('en-us', dateOptions),
+        blocked: match.blocked || match.bets ? match.bets.length == 0 : false,
       };
     };
 
