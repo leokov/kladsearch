@@ -525,13 +525,14 @@ class App extends Component {
     url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://api.maxbet.me/search?query=${searchState.query}&markets=ofb,ofbs,oa0s,of0s,obb,obbs,otn,otns,oih,oihs,ohb,ohbs,ovb,ovbs,ott,oaf,oafs,obm,obs,odt,owp,owps,oft,orb,org,osn,o3x3,obf,ocr,obx,omm,oe0s,,lfb,lbb,ltn,lih,lhb,lvb,ltt,laf,lbm,lbs,lbv,les,ldt,lwp,lft,lrb,lsn,lef,lvf`;
 
     const parseMaxbetMatch = (match) => {
+      const dateString = match.utc_scheduled.replace(' ', 'T') + '.000Z';
       return {
         id: match.id,
         sport: match.sport.name, //
         name: match.competitors.map((p) => p.name).join(' - '), //
         league: match.tournament.name, //
         live: match.live, //
-        date: new Date(match.utc_scheduled + "Z").toLocaleString('en-us', dateOptions), //
+        date: new Date(dateString).toLocaleString('en-us', dateOptions), //
         blocked: match.event_status == 'STOPPED' || !match.active_market_count || !match.active_oddtype_count //|| (match.event_status == 'RUNNING' && !match.current_time)
       };
     };
@@ -539,7 +540,7 @@ class App extends Component {
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        //console.log('Maxbet results : ', resJson);
+        console.log('Maxbet results : ', resJson);
         const resultsMaxbet = resJson.events.filter(m => !m.finished).map(parseMaxbetMatch);
         this.setState({ resultsMaxbet, resultsMaxbetReq: false });
       })
