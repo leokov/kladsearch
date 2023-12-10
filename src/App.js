@@ -712,42 +712,42 @@ class App extends Component {
           </div>
         </header>
 
-        <div className="box">
+        <div className={this.state.resultsLobbetReq ? "box d" : "box"}>
           <span class="bname">Lobbet</span>
           {this.state.resultsLobbetReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsLobbetHTML}
         </div>
-        <div className="box">
+        <div className={this.state.resultsZlatnikReq ? "box d" : "box"}>
           <span class="bname">Zlatnik</span>
           {this.state.resultsZlatnikReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsZlatnikHTML}
         </div>
-        <div className="box">
+        <div className={this.state.resultsMaxbetReq ? "box d" : "box"}>
           <span class="bname">Maxbet</span>
           {this.state.resultsMaxbetReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsMaxbetHTML}
         </div>
-        <div className="box">
+        <div className={this.state.resultsPremierReq ? "box d" : "box"}>
           <span class="bname">Premier</span>
           {this.state.resultsPremierReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsPremierHTML}
         </div>
-        <div className="box">
+        <div className={this.state.resultsSbbetReq ? "box d" : "box"}>
           <span class="bname">Sbbet</span>
           {this.state.resultsSbbetReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsSbbetHTML}
         </div>
-        <div className="box">
+        <div className={this.state.resultsVolcanoReq ? "box d" : "box"}>
           <span class="bname">Volcano</span>
           {this.state.resultsVolcanoReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsVolcanoHTML}
         </div>
-        <div className="box">
+        <div className={this.state.resultsAdmiralReq ? "box d" : "box"}>
           <span class="bname">Admiral</span>
           {this.state.resultsAdmiralReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsAdmiralHTML}
         </div>
-        <div className="box">
+        <div className={this.state.resultsMeridianReq ? "box d" : "box"}>
           <span class="bname">Meridian</span>
           {this.state.resultsMeridianReq ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsMeridianHTML}

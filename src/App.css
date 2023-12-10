@@ -47,6 +47,10 @@
   text-align: left;
 }
 
+.d {
+  background-color: #dcdce4ad;
+}
+
 .MatchPanelExpanded {
   background-color: #dcdce4;
   border-radius: 5px;
@@ -81,6 +85,7 @@
 .bloader {
   position: absolute;
   margin-top: -25px;
+  color: #ababc8;
 }
 
 .by {
