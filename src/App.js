@@ -412,7 +412,7 @@ class App extends Component {
         date: new Date(match.ModifiedDate).toLocaleString('en-us', dateOptions), // date arg in utc
       };
     };
-    fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/live-revision.json.gz`, {
+    fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/live-revision.json.gz`, {
       "body": null,
       "method": "GET"
     })
@@ -427,7 +427,7 @@ class App extends Component {
           return new RegExp(searchState.query, 'i').test(m.name);
         });
 
-        fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/nolive-revision.json.gz`, {
+        fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/nolive-revision.json.gz`, {
 
           "body": null,
           "method": "GET"
