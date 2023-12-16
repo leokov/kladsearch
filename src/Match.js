@@ -19,7 +19,7 @@ class Match extends Component {
         let matchName = this.props.name;
         
         
-        if (this.props.live) matchName = matchName + ' 🌲';
+        if (this.props.live) matchName = matchName + ' 🎄'; // 🎄  🌲 
         if (this.props.blocked ) matchName = matchName  + ' 🔒';
         
         

@@ -5,182 +5,29 @@ import { Sentry } from "react-activity";
 import './App.css';
 import "react-activity/dist/library.css";
 import Match from './Match';
-//import base64 from 'base-64';
-//const goog = require('goog');
-//import 'instantsearch.css/themes/satellite.css';
+import Base64 from './utils/base64';
 
-/**
-*
-*  Base64 encode / decode
-*  http://www.webtoolkit.info
-*
-**/
 const liveInd = ' --- LIVE ---';
-
 let url = '';
-
 const dateOptions = { month: "short", day: "numeric", hour: "numeric", minute: "numeric" };
 
-
-var Base64 = {
-
-  // private property
-  _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-
-  // public method for encoding
-  , encode: function (input) {
-    var output = "";
-    var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-    var i = 0;
-
-    input = Base64._utf8_encode(input);
-
-    while (i < input.length) {
-      chr1 = input.charCodeAt(i++);
-      chr2 = input.charCodeAt(i++);
-      chr3 = input.charCodeAt(i++);
-
-      enc1 = chr1 >> 2;
-      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-      enc4 = chr3 & 63;
-
-      if (isNaN(chr2)) {
-        enc3 = enc4 = 64;
-      }
-      else if (isNaN(chr3)) {
-        enc4 = 64;
-      }
-
-      output = output +
-        this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
-        this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
-    } // Whend 
-
-    return output;
-  } // End Function encode 
-
-
-  // public method for decoding
-  , decode: function (input) {
-    var output = "";
-    var chr1, chr2, chr3;
-    var enc1, enc2, enc3, enc4;
-    var i = 0;
-
-    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-    while (i < input.length) {
-      enc1 = this._keyStr.indexOf(input.charAt(i++));
-      enc2 = this._keyStr.indexOf(input.charAt(i++));
-      enc3 = this._keyStr.indexOf(input.charAt(i++));
-      enc4 = this._keyStr.indexOf(input.charAt(i++));
-
-      chr1 = (enc1 << 2) | (enc2 >> 4);
-      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-      chr3 = ((enc3 & 3) << 6) | enc4;
-
-      output = output + String.fromCharCode(chr1);
-
-      if (enc3 != 64) {
-        output = output + String.fromCharCode(chr2);
-      }
-
-      if (enc4 != 64) {
-        output = output + String.fromCharCode(chr3);
-      }
-
-    } // Whend 
-
-    output = Base64._utf8_decode(output);
-
-    return output;
-  } // End Function decode 
-
-
-  // private method for UTF-8 encoding
-  , _utf8_encode: function (string) {
-    var utftext = "";
-    string = string.replace(/\r\n/g, "\n");
-
-    for (var n = 0; n < string.length; n++) {
-      var c = string.charCodeAt(n);
-
-      if (c < 128) {
-        utftext += String.fromCharCode(c);
-      }
-      else if ((c > 127) && (c < 2048)) {
-        utftext += String.fromCharCode((c >> 6) | 192);
-        utftext += String.fromCharCode((c & 63) | 128);
-      }
-      else {
-        utftext += String.fromCharCode((c >> 12) | 224);
-        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-        utftext += String.fromCharCode((c & 63) | 128);
-      }
-
-    } // Next n 
-
-    return utftext;
-  } // End Function _utf8_encode 
-
-  // private method for UTF-8 decoding
-  , _utf8_decode: function (utftext) {
-    var string = "";
-    var i = 0;
-    var c, c1, c2, c3;
-    c = c1 = c2 = 0;
-
-    while (i < utftext.length) {
-      c = utftext.charCodeAt(i);
-
-      if (c < 128) {
-        string += String.fromCharCode(c);
-        i++;
-      }
-      else if ((c > 191) && (c < 224)) {
-        c2 = utftext.charCodeAt(i + 1);
-        string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-        i += 2;
-      }
-      else {
-        c2 = utftext.charCodeAt(i + 1);
-        c3 = utftext.charCodeAt(i + 2);
-        string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-        i += 3;
-      }
-
-    } // Whend 
-
-    return string;
-  } // End Function _utf8_decode 
-
-}
-
 class App extends Component {
+
+  state = {
+    searchState: qs.parse(window.location.search.slice(1)),
+    results: {
+      Lobbet: {}, Zlatnik: {}, Maxbet: {}, Premier: {}, Sbbet: {},
+      Volcano: {}, Admiral: {}, Meridian: {}
+    },
+    resultsReq: {
+      Lobbet: false, Zlatnik: false, Maxbet: false, Premier: false,
+      Sbbet: false, Volcano: false, Admiral: false, Meridian: false
+    },
+    matchId: null,
+  };
+
   constructor() {
     super();
-
-    this.state = {
-      searchState: qs.parse(window.location.search.slice(1)),
-      resultsLobbet: {},
-      resultsLobbetReq: false,
-      resultsPremier: {},
-      resultsPremierReq: false,
-      resultsSbbet: {},
-      resultsSbbetReq: false,
-      resultsMeridian: {},
-      resultsMeridianReq: false,
-      resultsVolcano: {},
-      resultsVolcanoReq: false,
-      resultsMaxbet: {},
-      resultsMaxbetReq: false,
-      resultsAdmiral: {},
-      resultsAdmiralReq: false,
-      resultsZlatnik: {},
-      resultsZlatnikReq: false,
-      matchId: null,
-    };
-
     window.addEventListener('popstate', ({ state: searchState }) => {
       this.setState({ searchState });
     });
@@ -190,7 +37,8 @@ class App extends Component {
     const compareMatch = (input) => new RegExp(searchState.query, 'i').test(input);
 
     this.setState({
-      resultsLobbetReq: true,
+      resultsReq: Object.fromEntries(Object.keys(this.state.resultsReq).map((key) => [key, true])),
+      results: Object.fromEntries(Object.keys(this.state.results).map((key) => [key, {}])),
       resultsPremierReq: true,
       resultsSbbetReq: true,
       resultsMeridianReq: true,
@@ -198,14 +46,12 @@ class App extends Component {
       resultsMaxbetReq: true,
       resultsAdmiralReq: true,
       resultsZlatnikReq: true,
-      resultsLobbet: {},
       resultsPremier: {},
       resultsSbbet: {},
       resultsMeridian: {},
       resultsVolcano: {},
       resultsMaxbet: {},
       resultsAdmiral: {},
-      resultsLobbet: {},
       resultsZlatnik: {}
     });
 
@@ -262,13 +108,16 @@ class App extends Component {
             if (!resJson.matches) return;
             const resultPrematches = resJson.matches.map(parseLobMatch);
 
-            let resultsLobbet = resultLive.filter((m) => {
+            let Lobbet = resultLive.filter((m) => {
               const hasMatch = resultPrematches.find((el) => {
                 return el.name == m.name;
               });
               return !hasMatch;
             }).concat(resultPrematches);
-            this.setState({ resultsLobbet, resultsLobbetReq: false });
+            this.setState({
+              results: {...this.state.results, Lobbet},
+              resultsReq: {...this.state.resultsReq, Lobbet: false}
+            });
           });
       })
       .catch((error) => console.log('Lobbet req error: ', error));
@@ -331,10 +180,10 @@ class App extends Component {
             neededLiveMatches.forEach((match) => {
               match.live = true;
             });
-            const resultsZlatnik = neededLiveMatches.concat(neededPreMatches).map(m => parseZlatnikMatch(m));
+            const Zlatnik = neededLiveMatches.concat(neededPreMatches).map(m => parseZlatnikMatch(m));
             this.setState({
-              resultsZlatnik,
-              resultsZlatnikReq: false
+              results: {...this.state.results, Zlatnik},
+              resultsReq: {...this.state.resultsReq, Zlatnik: false}
             });
           });
       })
@@ -388,9 +237,10 @@ class App extends Component {
                 });
               });
             });
+            const Admiral = neededLiveMatches.concat(neededPreMatches);
             this.setState({
-              resultsAdmiral: neededLiveMatches.concat(neededPreMatches),
-              resultsAdmiralReq: false
+              results: {...this.state.results, Admiral},
+              resultsReq: {...this.state.resultsReq, Admiral: false}
             });
           });
       })
@@ -452,9 +302,11 @@ class App extends Component {
               };
             });
 
-            let resultsPremier = neededLiveMatches.concat(neededPrematches);
-
-            this.setState({resultsPremier, resultsPremierReq: false });
+            const Premier = neededLiveMatches.concat(neededPrematches);
+            this.setState({
+              results: {...this.state.results, Premier},
+              resultsReq: {...this.state.resultsReq, Premier: false}
+            });
 
           }).catch((e) => console.error);
 
@@ -479,7 +331,7 @@ class App extends Component {
         const resStringUtf8 = Base64.decode(resText);
         const matches = resStringUtf8.split('$');
 
-        const resultsSbbet = matches.map((sub) => {
+        const Sbbet = matches.map((sub) => {
           let match = {};
           if (new RegExp('"FH":', 'i').test(sub)) {
             match.live = true;
@@ -491,7 +343,10 @@ class App extends Component {
             return new RegExp(searchState.query, 'i').test(match.name);
           });
 
-        this.setState({ resultsSbbet, resultsSbbetReq: false });
+        this.setState({
+          results: {...this.state.results, Sbbet},
+          resultsReq: {...this.state.resultsReq, Sbbet: false}
+        });
       })
       .catch((error) => console.log('Sbbet req error: ', error));
 
@@ -515,8 +370,12 @@ class App extends Component {
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        if (resJson[0]) this.setState({ resultsMeridian: resJson[0].events.map(parseMeridianMatch) });
-        this.setState({ resultsMeridianReq: false })
+        if (resJson[0]) {
+          const Meridian = resJson[0].events.map(parseMeridianMatch);
+          this.setState({ results: {...this.state.results, Meridian } });
+        }
+        this.setState({ resultsReq: {...this.state.resultsReq, Meridian: false} });
+        
       })
       .catch((error) => {
         console.log('Meridian req error: ', error);
@@ -552,10 +411,10 @@ class App extends Component {
       .then((res) => res.json())
       .then((resJson) => {
         if (resJson[0]) {
-          const resultsVolcano = resJson.map(parseVolcanoMatch);
-          this.setState({ resultsVolcano });
+          const Volcano = resJson.map(parseVolcanoMatch);
+          this.setState({ results: {...this.state.results, Volcano} });
         }
-        this.setState({ resultsVolcanoReq: false });
+        this.setState({ resultsReq: {...this.state.resultsReq, Volcano: false} });
       })
       .catch((error) => {
         console.log('Volcano req error: ', error);
@@ -583,8 +442,11 @@ class App extends Component {
     fetch(url)
       .then((res) => res.json())
       .then((resJson) => {
-        const resultsMaxbet = resJson.events.filter(m => !m.finished).map(parseMaxbetMatch);
-        this.setState({ resultsMaxbet, resultsMaxbetReq: false });
+        const Maxbet = resJson.events.filter(m => !m.finished).map(parseMaxbetMatch);
+        this.setState({
+          results: {...this.state.results, Maxbet},
+          resultsReq: {...this.state.resultsReq, Maxbet: false}
+        });
       })
       .catch((error) => console.log('Maxbet req error: ', error));
 
@@ -604,19 +466,11 @@ class App extends Component {
     });
   };
 
-
-
   render() {
     const {
+      results = {},
+      resultsReq = {},
       searchState = {},
-      resultsLobbet = {},
-      resultsPremier = {},
-      resultsSbbet = {},
-      resultsMeridian = {},
-      resultsVolcano = {},
-      resultsMaxbet = {},
-      resultsAdmiral = {},
-      resultsZlatnik = {},
       matchId
     } = this.state;
 
@@ -630,51 +484,51 @@ class App extends Component {
     let resultsZlatnikHTML = [];
 
     let i = 0;
-    if (Object.keys(resultsLobbet).length !== 0) {
-      resultsLobbet.map(element => {
+    if (Object.keys(results.Lobbet).length !== 0) {
+      results.Lobbet.map(element => {
         i++;
         resultsLobbetHTML.push(<Match key={i} {...element} />);
         //resultsLobbetHTML.push(<div key={i}><p>{element.name.toString()}</p></div>);
       });
     }
-    if (Object.keys(resultsPremier).length !== 0) {
-      resultsPremier.map(element => {
+    if (Object.keys(results.Premier).length !== 0) {
+      results.Premier.map(element => {
         i++;
         resultsPremierHTML.push(<Match key={i} {...element} />);
       });
     }
-    if (Object.keys(resultsSbbet).length !== 0) {
-      resultsSbbet.map(element => {
+    if (Object.keys(results.Sbbet).length !== 0) {
+      results.Sbbet.map(element => {
         i++;
         resultsSbbetHTML.push(<Match key={i} {...element} />);
       });
     }
-    if (Object.keys(resultsMeridian).length !== 0) {
-      resultsMeridian.map(element => {
+    if (Object.keys(results.Meridian).length !== 0) {
+      results.Meridian.map(element => {
         i++;
         resultsMeridianHTML.push(<Match key={i} {...element} />);
       });
     }
-    if (Object.keys(resultsVolcano).length !== 0) {
-      resultsVolcano.map(element => {
+    if (Object.keys(results.Volcano).length !== 0) {
+      results.Volcano.map(element => {
         i++;
         resultsVolcanoHTML.push(<Match key={i} {...element} />);
       });
     }
-    if (Object.keys(resultsMaxbet).length !== 0) {
-      resultsMaxbet.map(element => {
+    if (Object.keys(results.Maxbet).length !== 0) {
+      results.Maxbet.map(element => {
         i++;
         resultsMaxbetHTML.push(<Match key={i} {...element} />);
       });
     }
-    if (Object.keys(resultsAdmiral).length !== 0) {
-      resultsAdmiral.map(element => {
+    if (Object.keys(results.Admiral).length !== 0) {
+      results.Admiral.map(element => {
         i++;
         resultsAdmiralHTML.push(<Match key={i} {...element} />);
       });
     }
-    if (Object.keys(resultsZlatnik).length !== 0) {
-      resultsZlatnik.map(element => {
+    if (Object.keys(results.Zlatnik).length !== 0) {
+      results.Zlatnik.map(element => {
         i++;
         resultsZlatnikHTML.push(<Match key={i} {...element} />);
       });
@@ -692,64 +546,52 @@ class App extends Component {
               <div className='searchBox'>
                 <SearchBox
                   text="search"
-                  // Optional parameters
-                  //defaultRefinement={string}
                   autoFocus
                   searchAsYouType={false}
-                //showLoadingIndicator
-                //submit={React.Node}
-                //reset={React.Node}
-                //loadingIndicator={React.Node}
-                //focusShortcuts={string[]}
-                //onSubmit={() => {}}
-                //onReset={() => {}}
-                //on*={() => {}}
-                //translations={object}
-
                 />
               </div>
             </InstantSearch>
           </div>
         </header>
 
-        <div className={this.state.resultsLobbetReq ? "box d" : "box"}>
+        <div className={resultsReq.Lobbet ? "box d" : "box"}>
           <span class="bname">Lobbet</span>
-          {this.state.resultsLobbetReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Lobbet ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsLobbetHTML}
         </div>
-        <div className={this.state.resultsZlatnikReq ? "box d" : "box"}>
+        <div className={resultsReq.Zlatnik ? "box d" : "box"}>
           <span class="bname">Zlatnik</span>
-          {this.state.resultsZlatnikReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Zlatnik ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsZlatnikHTML}
         </div>
-        <div className={this.state.resultsMaxbetReq ? "box d" : "box"}>
+        <div className={resultsReq.Maxbet ? "box d" : "box"}>
           <span class="bname">Maxbet</span>
-          {this.state.resultsMaxbetReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Maxbet ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsMaxbetHTML}
         </div>
-        <div className={this.state.resultsPremierReq ? "box d" : "box"}>
+        <div className={resultsReq.Premier ? "box d" : "box"}>
           <span class="bname">Premier</span>
-          {this.state.resultsPremierReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Premier ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsPremierHTML}
         </div>
-        <div className={this.state.resultsSbbetReq ? "box d" : "box"}>
+        <div className={resultsReq.Sbbet ? "box d" : "box"}>
           <span class="bname">Sbbet</span>
-          {this.state.resultsSbbetReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Sbbet ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsSbbetHTML}
         </div>
-        <div className={this.state.resultsVolcanoReq ? "box d" : "box"}>
+        <div className={resultsReq.Volcano ? "box d" : "box"}>
           <span class="bname">Volcano</span>
-          {this.state.resultsVolcanoReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Volcano ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsVolcanoHTML}
         </div>
-        <div className={this.state.resultsAdmiralReq ? "box d" : "box"}>
+        <div className={resultsReq.Admiral ? "box d" : "box"}>
           <span class="bname">Admiral</span>
-          {this.state.resultsAdmiralReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Admiral ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsAdmiralHTML}
         </div>
-        <div className={this.state.resultsMeridianReq ? "box d" : "box"}>
+        <div className={resultsReq.Meridian ? "box d" : "box"}>
           <span class="bname">Meridian</span>
-          {this.state.resultsMeridianReq ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsReq.Meridian ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsMeridianHTML}
         </div>
 
