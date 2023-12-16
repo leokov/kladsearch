@@ -7,8 +7,6 @@ import "react-activity/dist/library.css";
 import Match from './Match';
 import Base64 from './utils/base64';
 
-const liveInd = ' --- LIVE ---';
-let url = '';
 const dateOptions = { month: "short", day: "numeric", hour: "numeric", minute: "numeric" };
 
 class App extends Component {
@@ -39,26 +37,11 @@ class App extends Component {
     this.setState({
       resultsReq: Object.fromEntries(Object.keys(this.state.resultsReq).map((key) => [key, true])),
       results: Object.fromEntries(Object.keys(this.state.results).map((key) => [key, {}])),
-      resultsPremierReq: true,
-      resultsSbbetReq: true,
-      resultsMeridianReq: true,
-      resultsVolcanoReq: true,
-      resultsMaxbetReq: true,
-      resultsAdmiralReq: true,
-      resultsZlatnikReq: true,
-      resultsPremier: {},
-      resultsSbbet: {},
-      resultsMeridian: {},
-      resultsVolcano: {},
-      resultsMaxbet: {},
-      resultsAdmiral: {},
-      resultsZlatnik: {}
     });
 
     // -----
     // LOBBET
     // -----
-    url = `https://www.lobbet.me/ibet/async/live/multy/1.json`;
     const parseLobMatch = (match) => {
       const lobSportTable = {
         'S': 'Football',
@@ -82,7 +65,9 @@ class App extends Component {
       };
     };
 
-    fetch(url, { method: 'POST'})
+    fetch('https://www.lobbet.me/ibet/async/live/multy/1.json', {
+      method: 'POST'
+    })
       .then((res) => res.json())
       .then((resJson) => {
         if (!resJson.IMatchLiveContainer) return;
@@ -100,9 +85,9 @@ class App extends Component {
         });
 
         // search prematches
-        url = `https://www.lobbet.me/ibet/search/matchesSearch/${searchState.query}.json`;
-
-        return fetch(url, { method: 'GET'})
+        return fetch(`https://www.lobbet.me/ibet/search/matchesSearch/${searchState.query}.json`, {
+          method: 'GET'
+        })
           .then((res) => res.json())
           .then((resJson) => {
             if (!resJson.matches) return;
@@ -249,9 +234,6 @@ class App extends Component {
     // -----
     // PREMIER
     // -----
-
-    //let url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://web2.premierbet.me/balance9876/user/logged`;
-
     const parsePremierMatch = (match) => {
       return {
         id: match.id,
@@ -278,7 +260,6 @@ class App extends Component {
         });
 
         fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/nolive-revision.json.gz`, {
-
           "body": null,
           "method": "GET"
         })
@@ -353,9 +334,6 @@ class App extends Component {
     // -----
     // MERIDIAN
     // -----
-    
-    url = `https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`;
-    
     const parseMeridianMatch = (match) => {
       return {
         id: match.id,
@@ -367,7 +345,7 @@ class App extends Component {
       };
     };
 
-    fetch(url)
+    fetch(`https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`)
       .then((res) => res.json())
       .then((resJson) => {
         if (resJson[0]) {
@@ -384,9 +362,6 @@ class App extends Component {
     // -----
     // VOLCANO
     // -----
-
-    url = `https://sportdataprovider.volcanobet.me/api/public/prematch/search?searchString=${searchState.query}`;
-
     const parseVolcanoMatch = (match) => {
       const volcanoSportTable = {
         1: 'Football',
@@ -407,7 +382,7 @@ class App extends Component {
         date: new Date(match.date).toLocaleString('en-us', dateOptions),
       };
     };
-    fetch(url)
+    fetch(`https://sportdataprovider.volcanobet.me/api/public/prematch/search?searchString=${searchState.query}`)
       .then((res) => res.json())
       .then((resJson) => {
         if (resJson[0]) {
@@ -423,9 +398,6 @@ class App extends Component {
     // -----
     // MAXBET
     // -----
-    
-    url = `https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://api.maxbet.me/search?query=${searchState.query}&markets=ofb,ofbs,oa0s,of0s,obb,obbs,otn,otns,oih,oihs,ohb,ohbs,ovb,ovbs,ott,oaf,oafs,obm,obs,odt,owp,owps,oft,orb,org,osn,o3x3,obf,ocr,obx,omm,oe0s,,lfb,lbb,ltn,lih,lhb,lvb,ltt,laf,lbm,lbs,lbv,les,ldt,lwp,lft,lrb,lsn,lef,lvf`;
-
     const parseMaxbetMatch = (match) => {
       const dateString = match.utc_scheduled.replace(' ', 'T') + '.000Z';
       return {
@@ -439,7 +411,7 @@ class App extends Component {
       };
     };
 
-    fetch(url)
+    fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://api.maxbet.me/search?query=${searchState.query}&markets=ofb,ofbs,oa0s,of0s,obb,obbs,otn,otns,oih,oihs,ohb,ohbs,ovb,ovbs,ott,oaf,oafs,obm,obs,odt,owp,owps,oft,orb,org,osn,o3x3,obf,ocr,obx,omm,oe0s,,lfb,lbb,ltn,lih,lhb,lvb,ltt,laf,lbm,lbs,lbv,les,ldt,lwp,lft,lrb,lsn,lef,lvf`)
       .then((res) => res.json())
       .then((resJson) => {
         const Maxbet = resJson.events.filter(m => !m.finished).map(parseMaxbetMatch);
