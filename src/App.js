@@ -43,6 +43,7 @@ class App extends Component {
     // LOBBET
     // -----
     const parseLobMatch = (match) => {
+      console.log('lob match: ', match);
       const lobSportTable = {
         'S': 'Football',
         'B': 'Basketball',
@@ -62,6 +63,7 @@ class App extends Component {
         live: false,
         date: new Date(match.kickOffTime).toLocaleString('en-us', dateOptions),
         blocked: match.blocked || match.bets ? match.bets.length == 0 : false,
+        code: match.matchCode,
       };
     };
 

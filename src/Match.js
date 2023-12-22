@@ -25,7 +25,7 @@ class Match extends Component {
         
         const matchPanel = (props) => {
             return <div className="MatchPanelExpanded">
-                <div class="MatchName">{matchName}</div><br></br>
+                <div class="MatchName">{this.props.code} {matchName}</div><br></br>
                 <div>{this.props.sport} ◌ {this.props.league} ◌ {this.props.date}</div><br></br>
             </div>
         };
