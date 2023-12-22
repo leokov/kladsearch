@@ -43,7 +43,6 @@ class App extends Component {
     // LOBBET
     // -----
     const parseLobMatch = (match) => {
-      console.log('lob match: ', match);
       const lobSportTable = {
         'S': 'Football',
         'B': 'Basketball',
