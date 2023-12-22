@@ -120,6 +120,7 @@ class App extends Component {
         league: match.LeagueName,
         live: match.live,
         date: new Date(match.MatchStartTime).toLocaleString('en-us', dateOptions), // date arg in utc
+        code: match.EventCode,
       };
     };
     // Search prematches
@@ -240,9 +241,10 @@ class App extends Component {
         id: match.id,
         sport: match.SportName,
         name: match.participant_1.name + ' - ' + match.participant_2.name,
-        league: match.c_name,
+        league: match.c_name ? `${match.co_name}, ${match.c_name}` : null,
         live: match.live,
-        date: new Date(match.ModifiedDate).toLocaleString('en-us', dateOptions), // date arg in utc
+        date: new Date(match.start_time).toLocaleString('en-us', dateOptions), // date arg in utc
+        code: match.code,
       };
     };
     fetch(`https://solitary-wind-aed0.lenkovlen9913.workers.dev/?https://premierbet.me/live-revision.json.gz`, {
@@ -278,11 +280,7 @@ class App extends Component {
               return new RegExp(searchState.query, 'i').test(matchString);
             });
 
-            const neededPrematches = neededMatches.map((match) => {
-              return {
-                name: match.participant_1.name + ' - ' + match.participant_2.name
-              };
-            });
+            const neededPrematches = neededMatches.map(parsePremierMatch);
 
             const Premier = neededLiveMatches.concat(neededPrematches);
             this.setState({
@@ -311,14 +309,24 @@ class App extends Component {
       .then((resText) => {
 
         const resStringUtf8 = Base64.decode(resText);
-        const matches = resStringUtf8.split('$');
+        //console.log('resStringUtf8:', resStringUtf8 );
+        const matches = resStringUtf8.split(/\n\$/).slice(1);
 
         const Sbbet = matches.map((sub) => {
           let match = {};
           if (new RegExp('"FH":', 'i').test(sub)) {
             match.live = true;
           }
-          match.name = sub.slice(38).split(/[^\x20-\x7E]/g)[0];
+          //console.log('SUB: ', sub);
+          //const test = sub.split(/\x04/);
+          //console.log('test: ', test);
+          const parsedMatchString = sub.slice(38).split(/[^\x20-\x7E]/g);
+          const internalMatchCode = parsedMatchString.find((el) => {
+            if (el.length <= 1) return false;
+            return (el[el.length - 1] == 'Z');
+          });
+          match.code = internalMatchCode.slice(0, -1);
+          match.name = parsedMatchString[0];
           return match;
         })
           .filter((match) => {
@@ -408,7 +416,8 @@ class App extends Component {
         league: match.tournament.name, //
         live: match.live, //
         date: new Date(dateString).toLocaleString('en-us', dateOptions), //
-        blocked: match.event_status == 'STOPPED' || !match.active_market_count || !match.active_oddtype_count //|| (match.event_status == 'RUNNING' && !match.current_time)
+        blocked: match.event_status == 'STOPPED' || !match.active_market_count || !match.active_oddtype_count, //|| (match.event_status == 'RUNNING' && !match.current_time)
+        code: match.listCode,
       };
     };
 
