@@ -189,7 +189,8 @@ class App extends Component {
         name: match.name,
         league: match.competitionName,
         live: match.isLive,
-        date: matchDate.toLocaleString('en-us', dateOptions) // date arg in utc
+        date: matchDate.toLocaleString('en-us', dateOptions), // date arg in utc
+        code: match.code
       };
     };
 
