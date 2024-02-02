@@ -180,6 +180,7 @@ class App extends Component {
     // ADMIRAL
     // -----
     const parseAdmiralMatch = (match) => {
+      console.log('admiral match: ', match);
       // exclusively for Admiral change match start time to utc
       const matchDate = new Date(match.dateTime);
       matchDate.setTime(matchDate.getTime() + 60 * 60 * 1000);
@@ -190,7 +191,8 @@ class App extends Component {
         league: match.competitionName,
         live: match.isLive,
         date: matchDate.toLocaleString('en-us', dateOptions), // date arg in utc
-        code: match.code
+        code: match.code,
+        blocked: (match.playableBetOutcomesCount == 0)
       };
     };
 
