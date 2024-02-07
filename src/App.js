@@ -15,11 +15,12 @@ class App extends Component {
     searchState: qs.parse(window.location.search.slice(1)),
     results: {
       Lobbet: {}, Zlatnik: {}, Maxbet: {}, Premier: {}, Sbbet: {},
-      Volcano: {}, Admiral: {}, Meridian: {}
+      Volcano: {}, Admiral: {}, Meridian: {}, Soccerbet: {}
     },
     resultsReq: {
       Lobbet: false, Zlatnik: false, Maxbet: false, Premier: false,
-      Sbbet: false, Volcano: false, Admiral: false, Meridian: false
+      Sbbet: false, Volcano: false, Admiral: false, Meridian: false,
+      Soccerbet: false
     },
     matchId: null,
   };
@@ -42,18 +43,18 @@ class App extends Component {
     // -----
     // LOBBET
     // -----
+    const lobSportTable = {
+      'S': 'Football',
+      'B': 'Basketball',
+      'T': 'Tennis',
+      'V': 'Volleyball',
+      'HB': 'Handball',
+      'H': 'Hockey',
+      'TT': 'Table tennis',
+      'E': 'Esports',
+      'FS': 'Futsal',
+    };
     const parseLobMatch = (match) => {
-      const lobSportTable = {
-        'S': 'Football',
-        'B': 'Basketball',
-        'T': 'Tennis',
-        'V': 'Volleyball',
-        'HB': 'Handball',
-        'H': 'Hockey',
-        'TT': 'Table tennis',
-        'E': 'Esports',
-        'FS': 'Futsal',
-      };
       return {
         id: match.id,
         sport: lobSportTable[match.sport],
@@ -374,17 +375,17 @@ class App extends Component {
     // -----
     // VOLCANO
     // -----
+    const volcanoSportTable = {
+      1: 'Football',
+      3: 'Basketball',
+      2: 'Tennis',
+      14: 'Volleyball',
+      4: 'Handball',
+      21: 'Hockey',
+      9: 'Table tennis',
+      19: 'Futsal',
+    };
     const parseVolcanoMatch = (match) => {
-      const volcanoSportTable = {
-        1: 'Football',
-        3: 'Basketball',
-        2: 'Tennis',
-        14: 'Volleyball',
-        4: 'Handball',
-        21: 'Hockey',
-        9: 'Table tennis',
-        19: 'Futsal',
-      };
       return {
         id: match.id,
         sport: volcanoSportTable[match.sportId],
@@ -434,6 +435,51 @@ class App extends Component {
         });
       })
       .catch((error) => console.log('Maxbet req error: ', error));
+    
+    // -----
+    // SOCCERBET
+    // -----
+    const soccerSportTable = {
+      'S': 'Football',
+      'B': 'Basketball',
+      'T': 'Tennis',
+      'V': 'Volleyball',
+      'HB': 'Handball',
+      'H': 'Hockey',
+      'TT': 'Table tennis',
+      'E': 'Esports',
+      'FS': 'Futsal',
+    };
+    const parseSoccerbetMatch = (match) => {
+      return {
+        id: match.id,
+        sport: soccerSportTable[match.sport], //
+        name: `${match.home} - ${match.away}`, //
+        league: match.leagueName, //
+        live: match.live, //
+        date: new Date(match.tmstmp).toLocaleString('en-us', dateOptions), //
+        blocked: match.blocked,
+        code: match.matchCode,
+      };
+    };
+    fetch(`https://www.soccerbet.me/restapi/offer/sr_ME/search/${searchState.query}/mob?annex=0&mobileVersion=2.27.13&locale=sr_ME`)
+      .then((res) => res.json())
+      .then((resJson) => {
+        //console.log('resJSON SOCCER : ', resJson);
+        const Soccerbet = resJson.esMatches.map(parseSoccerbetMatch);
+        this.setState({
+          results: {...this.state.results, Soccerbet},
+          resultsReq: {...this.state.resultsReq, Soccerbet: false}
+        });
+        // Fetch live
+        //return fetch('https://www.soccerbet.me/live/events/sr_ME')
+        //  .then((res) => res.text())
+        //  .then((resText) => {
+            //const a = resText.split('data:');
+            //const b = JSON.parse(a[1]);
+        //  });
+      })
+      .catch((error) => console.log('Soccerbet req error: ', error));
 
     // Update search state
     this.setState((previousState) => {
@@ -467,6 +513,7 @@ class App extends Component {
     let resultsMaxbetHTML = [];
     let resultsAdmiralHTML = [];
     let resultsZlatnikHTML = [];
+    let resultsSoccerbetHTML = [];
 
     let i = 0;
     if (Object.keys(results.Lobbet).length !== 0) {
@@ -518,6 +565,12 @@ class App extends Component {
         resultsZlatnikHTML.push(<Match key={i} {...element} />);
       });
     }
+    if (Object.keys(results.Soccerbet).length !== 0) {
+      results.Soccerbet.map(element => {
+        i++;
+        resultsSoccerbetHTML.push(<Match key={i} {...element} />);
+      });
+    }
     return (
       <div className="App">
         <header>
@@ -539,15 +592,35 @@ class App extends Component {
           </div>
         </header>
 
+        <div className={resultsReq.Admiral ? "box d" : "box"}>
+          <span class="bname">Admiral</span>
+          {resultsReq.Admiral ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsAdmiralHTML}
+        </div>
+        <div className={resultsReq.Volcano ? "box d" : "box"}>
+          <span class="bname">Volcano</span>
+          {resultsReq.Volcano ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsVolcanoHTML}
+        </div>
         <div className={resultsReq.Lobbet ? "box d" : "box"}>
           <span class="bname">Lobbet</span>
           {resultsReq.Lobbet ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsLobbetHTML}
         </div>
-        <div className={resultsReq.Zlatnik ? "box d" : "box"}>
-          <span class="bname">Zlatnik</span>
-          {resultsReq.Zlatnik ? <center><span class="bloader"><Sentry /></span></center> : null}
-          {resultsZlatnikHTML}
+        <div className={resultsReq.Soccerbet ? "box d" : "box"}>
+          <span class="bname">Soccerbet</span>
+          {resultsReq.Soccerbet ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsSoccerbetHTML}
+        </div>
+        <div className={resultsReq.Meridian ? "box d" : "box"}>
+          <span class="bname">Meridian</span>
+          {resultsReq.Meridian ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsMeridianHTML}
+        </div>
+        <div className={resultsReq.Sbbet ? "box d" : "box"}>
+          <span class="bname">Sbbet</span>
+          {resultsReq.Sbbet ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsSbbetHTML}
         </div>
         <div className={resultsReq.Maxbet ? "box d" : "box"}>
           <span class="bname">Maxbet</span>
@@ -559,27 +632,12 @@ class App extends Component {
           {resultsReq.Premier ? <center><span class="bloader"><Sentry /></span></center> : null}
           {resultsPremierHTML}
         </div>
-        <div className={resultsReq.Sbbet ? "box d" : "box"}>
-          <span class="bname">Sbbet</span>
-          {resultsReq.Sbbet ? <center><span class="bloader"><Sentry /></span></center> : null}
-          {resultsSbbetHTML}
+        <div className={resultsReq.Zlatnik ? "box d" : "box"}>
+          <span class="bname">Zlatnik</span>
+          {resultsReq.Zlatnik ? <center><span class="bloader"><Sentry /></span></center> : null}
+          {resultsZlatnikHTML}
         </div>
-        <div className={resultsReq.Volcano ? "box d" : "box"}>
-          <span class="bname">Volcano</span>
-          {resultsReq.Volcano ? <center><span class="bloader"><Sentry /></span></center> : null}
-          {resultsVolcanoHTML}
-        </div>
-        <div className={resultsReq.Admiral ? "box d" : "box"}>
-          <span class="bname">Admiral</span>
-          {resultsReq.Admiral ? <center><span class="bloader"><Sentry /></span></center> : null}
-          {resultsAdmiralHTML}
-        </div>
-        <div className={resultsReq.Meridian ? "box d" : "box"}>
-          <span class="bname">Meridian</span>
-          {resultsReq.Meridian ? <center><span class="bloader"><Sentry /></span></center> : null}
-          {resultsMeridianHTML}
-        </div>
-
+        
         <p className="by">made by Leo & Ninessa</p>
         <p className="by">donate crypto to 0xAf481A660EFb3E4C422c70dEF4D0fa2E50c7d0C7</p>
       </div>
