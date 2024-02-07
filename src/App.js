@@ -193,7 +193,7 @@ class App extends Component {
         live: match.isLive,
         date: matchDate.toLocaleString('en-us', dateOptions), // date arg in utc
         code: match.code,
-        blocked: (match.playableBetOutcomesCount == 0)
+        blocked: match.isLive && (match.playableBetOutcomesCount == 0)
       };
     };
 
