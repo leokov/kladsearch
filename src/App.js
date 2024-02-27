@@ -181,7 +181,6 @@ class App extends Component {
     // ADMIRAL
     // -----
     const parseAdmiralMatch = (match) => {
-      //console.log('admiral match: ', match);
       // exclusively for Admiral change match start time to utc
       const matchDate = new Date(match.dateTime);
       matchDate.setTime(matchDate.getTime() + 60 * 60 * 1000);
@@ -313,7 +312,6 @@ class App extends Component {
       .then((resText) => {
 
         const resStringUtf8 = Base64.decode(resText);
-        //console.log('resStringUtf8:', resStringUtf8 );
         const matches = resStringUtf8.split(/\n\$/).slice(1);
 
         const Sbbet = matches.map((sub) => {
@@ -321,9 +319,7 @@ class App extends Component {
           if (new RegExp('"FH":', 'i').test(sub)) {
             match.live = true;
           }
-          //console.log('SUB: ', sub);
           //const test = sub.split(/\x04/);
-          //console.log('test: ', test);
           const parsedMatchString = sub.slice(38).split(/[^\x20-\x7E]/g);
           const internalMatchCode = parsedMatchString.find((el) => {
             if (el.length <= 1) return false;
@@ -355,6 +351,7 @@ class App extends Component {
         league: match.leagueName,
         live: match.isVisibleLive,
         date: new Date(match.startTime).toLocaleString('en-us', dateOptions),
+        code: match.code,
       };
     };
 
@@ -456,8 +453,8 @@ class App extends Component {
         sport: soccerSportTable[match.sport], //
         name: `${match.home} - ${match.away}`, //
         league: match.leagueName, //
-        live: match.live, //
-        date: new Date(match.tmstmp).toLocaleString('en-us', dateOptions), //
+        live: false, //
+        date: new Date(match.kickOffTime).toLocaleString('en-us', dateOptions), //
         blocked: match.blocked,
         code: match.matchCode,
       };
@@ -465,7 +462,6 @@ class App extends Component {
     fetch(`https://www.soccerbet.me/restapi/offer/sr_ME/search/${searchState.query}/mob?annex=0&mobileVersion=2.27.13&locale=sr_ME`)
       .then((res) => res.json())
       .then((resJson) => {
-        //console.log('resJSON SOCCER : ', resJson);
         const Soccerbet = resJson.esMatches.map(parseSoccerbetMatch);
         this.setState({
           results: {...this.state.results, Soccerbet},
