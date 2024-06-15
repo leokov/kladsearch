@@ -347,7 +347,7 @@ class App extends Component {
       return {
         id: match.id,
         sport: match.sportName,
-        name: match.name,
+        name: match.rivals.join(' - '),
         league: match.leagueName,
         live: match.isVisibleLive,
         date: new Date(match.startTime).toLocaleString('en-us', dateOptions),
@@ -355,11 +355,18 @@ class App extends Component {
       };
     };
 
-    fetch(`https://meridianbet.me/sails/search/page?query=${searchState.query}&locale=en`)
+    fetch(`https://online.meridianbet.com/betshop/api/v3/search?term=${searchState.query}&page=0`, {
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "accept-language": "en",
+        "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoiMTAwMDAzIiwidXNlcl9uYW1lIjoiMjM4NWE4OGMtYjMzZS00NjM2LTlhODYtYjA5NzRhMWUyMzc4ZjkyN2M5NWYtODEzNy00ZTFlLWIzODItNDk0OWRkOGM3YTdiIiwiZW1waXJlYmV0X2NvbXBhbnlfaWQiOiIzNiIsImJldHNob3BfaWQiOiIxMDA4NjkiLCJtYXJrZXRfaWQiOiIxMDAyNDIiLCJzZXNzaW9uX2lkIjoiMjM4NWE4OGMtYjMzZS00NjM2LTlhODYtYjA5NzRhMWUyMzc4ZjkyN2M5NWYtODEzNy00ZTFlLWIzODItNDk0OWRkOGM3YTdiIiwiY3JlYXRlZF9hdCI6MTcxODQ2NjgzMTQ3NCwiYXV0aG9yaXRpZXMiOlsiYWNjb3VudCJdLCJwbGF0Zm9ybSI6IldFQl9ERVNLVE9QIiwiY2xpZW50X2lkIjoid2ViLW1vbnRlbmVncm8iLCJlbXBpcmViZXRfYmV0c2hvcF9pZCI6IjE1MTkiLCJhdWQiOlsiYWNjb3VudCJdLCJleHBpcmVzX2F0IjoxNzE4NDcwNDMxNDc0LCJlbXBpcmViZXRfbWFya2V0X2lkIjoiMTI5Iiwic2NvcGUiOlsiR0VORVJBTCJdLCJleHAiOjE3MTg0NzA0MzEsImp0aSI6IjdhOWNiMjJiLWZjZGMtNDA2NS1iN2IzLWEwOWIxMTRmZWQzOCJ9.RhrSsEjusfUkJF0OAwc4fb5k7iHEZlIrvWg_HlqDOIc",
+
+      },
+    })
       .then((res) => res.json())
       .then((resJson) => {
-        if (resJson[0]) {
-          const Meridian = resJson[0].events.map(parseMeridianMatch);
+        if (resJson.payload) {
+          const Meridian = resJson.payload.events.map(parseMeridianMatch);
           this.setState({ results: {...this.state.results, Meridian } });
         }
         this.setState({ resultsReq: {...this.state.resultsReq, Meridian: false} });
